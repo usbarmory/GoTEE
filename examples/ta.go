@@ -39,32 +39,39 @@ func testInvalidAccess() {
 
 	mem := (*uint32)(unsafe.Pointer(uintptr(pl1RamStart)))
 	val := atomic.LoadUint32(mem)
-	res := "success"
+	res := "success (shouldn't happen)"
 
 	if val != 0xe59a1008 {
-		res = "fail"
+		res = "fail (expected, but you should never see this)"
 	}
 
 	log.Printf("PL0 read PL1 memory %#x: %#x (%s)", pl1RamStart, val, res)
 }
 
 func testAbort() {
-	log.Printf("PL0 is about to trigger data abort")
-
 	var p *byte
+
+	log.Printf("PL0 is about to trigger data abort")
 	*p = 0xab
 }
 
 func main() {
 	log.Printf("PL0 %s/%s (%s) • TEE user applet", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL0 will sleep for 5 seconds")
 
 	for i := 0; i < 5; i++ {
-		log.Printf("PL0 is sleeping in user mode")
 		time.Sleep(1 * time.Second)
+		log.Printf("PL0 says %d missisipi", i+1)
 	}
 
+	// test memory protection
 	testInvalidAccess()
+
+	// this should be unreachable
+
+	// test exception handling
 	testAbort()
 
+	// terminate applet
 	applet.Exit()
 }

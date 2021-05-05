@@ -24,19 +24,25 @@ TEXT ·Exec(SB),$0-4
 	// save g stack pointer
 	MOVW	R13, ExecCtx_g_sp(R0)
 
-	// switch to supervisor mode (FIXME)
-	// WORD	$0xf1020013			// cps 0x13
+	// restore SP, LR
+	MOVW	ExecCtx_R13(R0), R13
+	MOVW	ExecCtx_R14(R0), R14
 
-	// restore mode, registers and PC
+	// switch to supervisor mode
+	WORD	$0xf1020013			// cps 0x13
+
+	// restore mode
 	MOVW	ExecCtx_SPSR(R0), R1
 	WORD	$0xe169f001			// msr SPSR, r1
-	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
+
+	// restore r0-r12, r15
+	WORD	$0xe8d0ffff			// ldm r0, {r0-r15}^
 
 #define USER_EXCEPTION()							\
 	/* save caller registers */						\
 										\
 	MOVW	·execCtx(SB), R13						\
-	WORD	$0xe8cd7fff			/* stmia r13, {r0-r14}^ */	\
+	WORD	$0xe8cd7fff			/* stm r13, {r0-r14}^ */	\
 	MOVW	R14, ExecCtx_R15(R13)						\
 										\
 	WORD	$0xe14f0000			/* mrs r0, SPSR */		\

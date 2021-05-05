@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 	_ "unsafe"
 
@@ -20,7 +21,7 @@ import (
 
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 
-	_ "github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
+	"github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
 )
 
 var Build string
@@ -48,9 +49,16 @@ func init() {
 	if err := imx6.SetARMFreq(900); err != nil {
 		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v", err))
 	}
+
+	usbarmory.LED("blue", true)
+
+	debugConsole, _ := usbarmory.DetectDebugAccessory(250 * time.Millisecond)
+	<-debugConsole
 }
 
 func main() {
+	var wg sync.WaitGroup
+
 	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	applet := monitor.Load(appletELF)
@@ -58,10 +66,25 @@ func main() {
 	applet.Debug = true
 
 	log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", applet.Memory.Start, len(appletELF), applet.R15)
-	go applet.Run()
+	wg.Add(1)
 
-	for {
-		time.Sleep(1 * time.Second)
-		log.Printf("PL1 is sleeping in system mode")
-	}
+	// show concurrent execution of PL1 and PL0 Go unikernels
+
+	go func() {
+		applet.Run()
+		wg.Done()
+	}()
+
+	go func() {
+		log.Printf("PL1 will sleep until PL0 is done")
+
+		for i := 0; i < 60; i++ {
+			time.Sleep(1 * time.Second)
+			log.Printf("PL1 says %d missisipi", i+1)
+		}
+	}()
+
+	wg.Wait()
+
+	log.Printf("PL1 says goodbye")
 }

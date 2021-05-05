@@ -24,32 +24,49 @@ applets.
 
 ![diagram](https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg)
 
-Testing
-=======
+Executing
+=========
+
+For real hardware the PoC can be compiled for the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
+as follows:
+
+```
+make example_ta && make example_os
+
+```
+
+The resulting `os.imx` can be executed via
+[SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
+(note that for now the PoC only provides serial console feedback).
+
+Emulating
+=========
+
+An emulated run under QEMU can be performed as follows:
 
 ```
 make example_ta && make qemu
 ...
 00:00:00 PL1 tamago/arm (go1.16.3) • TEE system/supervisor
-00:00:00 PL1 loaded applet addr:0x80000000 size:1753012 entry:0x8006902c
+00:00:00 PL1 loaded applet addr:0x80000000 size:1753008 entry:0x8006902c
+00:00:00 PL1 will sleep until PL0 is done
 00:00:00 PL1 starting PL0 sp:0x8fffff00 pc:0x8006902c
 00:00:00 PL0 tamago/arm (go1.16.3) • TEE user applet
-00:00:00 PL0 is sleeping in user mode
-00:00:01 PL1 is sleeping in system mode
-00:00:01 PL0 is sleeping in user mode
-00:00:02 PL1 is sleeping in system mode
-00:00:02 PL0 is sleeping in user mode
-00:00:03 PL1 is sleeping in system mode
-00:00:03 PL0 is sleeping in user mode
-00:00:04 PL1 is sleeping in system mode
-00:00:04 PL0 is sleeping in user mode
-00:00:05 PL1 is sleeping in system mode
+00:00:00 PL0 will sleep for 5 seconds
+00:00:01 PL1 says 1 missisipi
+00:00:01 PL0 says 1 missisipi
+00:00:02 PL1 says 2 missisipi
+00:00:02 PL0 says 2 missisipi
+00:00:03 PL1 says 3 missisipi
+00:00:03 PL0 says 3 missisipi
+00:00:04 PL1 says 4 missisipi
+00:00:04 PL0 says 4 missisipi
+00:00:05 PL1 says 5 missisipi
+00:00:05 PL0 says 5 missisipi
 00:00:05 PL0 about to read PL1 memory at 0x90010000
-00:00:05 stopped PL0 task sp:0x81428f3c lr:0x8009f840 pc:0x80011374 err:exception mode ABT
-00:00:06 PL1 is sleeping in system mode
-00:00:07 PL1 is sleeping in system mode
-00:00:08 PL1 is sleeping in system mode
-...
+00:00:05 PL1 stopped PL0 task sp:0x81428f30 lr:0x8009f840 pc:0x80011374 err:exception mode ABT
+00:00:05 PL1 says goodbye
+exit with code 0 halting
 ```
 
 Debugging

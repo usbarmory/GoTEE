@@ -108,7 +108,7 @@ func (ctx *ExecCtx) Run() (err error) {
 	}
 
 	if ctx.Debug {
-		log.Printf("stopped PL0 task sp:%#.8x lr:%#.8x pc:%#.8x err:%v", ctx.R13, ctx.R14, ctx.R15, err)
+		log.Printf("PL1 stopped PL0 task sp:%#.8x lr:%#.8x pc:%#.8x err:%v", ctx.R13, ctx.R14, ctx.R15, err)
 	}
 
 	return

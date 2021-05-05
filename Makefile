@@ -66,6 +66,7 @@ clean:
 qemu: example_os
 	$(QEMU) -kernel os
 
+qemu-gdb: TEXT_START=0x90010000
 qemu-gdb: GOFLAGS := $(GOFLAGS:-s=)
 qemu-gdb: GOFLAGS := $(GOFLAGS:-w=)
 qemu-gdb: example_os
