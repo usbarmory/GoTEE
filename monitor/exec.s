@@ -36,13 +36,13 @@ TEXT ·Exec(SB),$0-4
 	WORD	$0xe169f001			// msr SPSR, r1
 
 	// restore r0-r12, r15
-	WORD	$0xe8d0ffff			// ldm r0, {r0-r15}^
+	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
 #define USER_EXCEPTION()							\
 	/* save caller registers */						\
 										\
 	MOVW	·execCtx(SB), R13						\
-	WORD	$0xe8cd7fff			/* stm r13, {r0-r14}^ */	\
+	WORD	$0xe8cd7fff			/* stmia r13, {r0-r14}^ */	\
 	MOVW	R14, ExecCtx_R15(R13)						\
 										\
 	WORD	$0xe14f0000			/* mrs r0, SPSR */		\

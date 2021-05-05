@@ -23,6 +23,18 @@ const userModePSR uint32 = (0b111 << 6) | arm.USR_MODE
 
 var systemVectorTable = arm.SystemVectorTable()
 
+var monitorVectorTable = arm.VectorTable{
+	Reset:         monitor,
+	Undefined:     monitor,
+	Supervisor:    monitor,
+	PrefetchAbort: monitor,
+	DataAbort:     monitor,
+	IRQ:           monitor,
+	FIQ:           monitor,
+}
+// defined in exec.s
+func monitor()
+
 // Exec allows execution of a bare metal executable in user mode. The execution
 // is isolated from the invoking Go unikernel runtime, which can be returned to
 // with a a supervisor (SVC) exception or through timer interrupts (TODO).
@@ -73,7 +85,7 @@ func (ctx *ExecCtx) ExceptionMode() int {
 
 func (ctx *ExecCtx) schedule() (err error) {
 	// set monitor handlers
-	arm.SetVectorTable(MonitorVectorTable)
+	arm.SetVectorTable(monitorVectorTable)
 
 	// execute applet
 	Exec(ctx)
