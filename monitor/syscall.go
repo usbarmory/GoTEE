@@ -15,13 +15,15 @@ import (
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
+// Handler is invoked on any supervisor (SVC) exceptions raised by the
+// execution context to handle supported GoTEE system calls.
 func Handler(ctx *ExecCtx) (err error) {
 	switch num := ctx.R0; num {
 	case syscall.SYS_EXIT:
 		return fmt.Errorf("exit")
 	case syscall.SYS_WRITE:
 		imx6.UART2.Tx(byte(ctx.R1))
-	case syscall.SYS_UTIME:
+	case syscall.SYS_NANOTIME:
 		t := int64(imx6.ARM.TimerFn() * imx6.ARM.TimerMultiplier)
 		ctx.R0 = uint32(t & 0xffffffff)
 		ctx.R1 = uint32(t >> 32)

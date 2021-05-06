@@ -28,9 +28,9 @@ TEXT ·Write(SB),$0-4
 
 	RET
 
-// func Utime() int64
-TEXT ·Utime(SB),$0-8
-	MOVW	$const_SYS_UTIME, R0
+// func Nanotime() int64
+TEXT ·Nanotime(SB),$0-8
+	MOVW	$const_SYS_NANOTIME, R0
 
 	SWI	$0
 

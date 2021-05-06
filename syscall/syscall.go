@@ -12,7 +12,11 @@ import (
 
 // defined in syscall.s
 func svc()
+// Exit terminates the user mode executable scheduling.
 func Exit()
-func Write(byte)
-func Utime() int64
-func GetRandom([]byte, uint)
+// Write prints a single character on standard output.
+func Write(c byte)
+// Nanotime returns the system time in nanoseconds.
+func Nanotime() int64
+// GetRandom fills a byte array with random values.
+func GetRandom(b []byte, n uint)

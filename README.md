@@ -3,10 +3,10 @@ Introduction
 
 > :warning: this is a PoC
 
-This project demonstrates instantiation of
+This project demonstrates concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
-privileged (PL1 - system mode) and unprivileged (PL0 - user mode), interacting
-with each other through monitor/supervisor mode and custom system calls
+privileged and unprivileged modes, interacting with each other through
+monitor/supervisor mode and custom system calls
 
 The PoC serves as foundation to develop a
 [TamaGo](https://github.com/f-secure-foundry/tamago) based Trusted Execution
@@ -23,6 +23,22 @@ is planned, allowing execution of [OP-TEE](https://www.op-tee.org/) compatible
 applets.
 
 ![diagram](https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg)
+
+Operation
+=========
+
+The PoC performs basic testing of concurrent execution of two
+[TamaGo](https://github.com/f-secure-foundry/tamago) unikernels at
+different privilege levels:
+
+ * PL1 / system mode: trusted OS
+ * PL2 / user mode: trusted applet
+
+The trusted applet sleeps for 5 seconds before attempting to read privileged
+memory, which is used to test exception handling by the supervisor.
+
+A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
+interface is implemented for communication between the two processes.
 
 Executing
 =========
@@ -48,25 +64,24 @@ An emulated run under QEMU can be performed as follows:
 make example_ta && make qemu
 ...
 00:00:00 PL1 tamago/arm (go1.16.3) • TEE system/supervisor
-00:00:00 PL1 loaded applet addr:0x80000000 size:1753008 entry:0x8006902c
+00:00:00 PL1 loaded applet addr:0x80000000 size:1752915 entry:0x80068fac
 00:00:00 PL1 will sleep until PL0 is done
-00:00:00 PL1 starting PL0 sp:0x8fffff00 pc:0x8006902c
+00:00:00 PL1 starting PL0 sp:0x8fffff00 pc:0x80068fac
 00:00:00 PL0 tamago/arm (go1.16.3) • TEE user applet
 00:00:00 PL0 will sleep for 5 seconds
 00:00:01 PL1 says 1 missisipi
 00:00:01 PL0 says 1 missisipi
-00:00:02 PL1 says 2 missisipi
-00:00:02 PL0 says 2 missisipi
-00:00:03 PL1 says 3 missisipi
-00:00:03 PL0 says 3 missisipi
-00:00:04 PL1 says 4 missisipi
-00:00:04 PL0 says 4 missisipi
+...
 00:00:05 PL1 says 5 missisipi
 00:00:05 PL0 says 5 missisipi
 00:00:05 PL0 about to read PL1 memory at 0x90010000
-00:00:05 PL1 stopped PL0 task sp:0x81428f30 lr:0x8009f840 pc:0x80011374 err:exception mode ABT
+00:00:05        r0:90010000   r1:814220c0   r2:00000001   r3:00000000
+00:00:05        r1:814220c0   r2:00000001   r3:00000000   r4:00000000
+00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
+00:00:05        r9:00000034  r10:814000e0  r11:900fbe44  r12:00000000
+00:00:05        sp:81428f30   lr:8009f7c0   pc:80011374 spsr:600000d0
+00:00:05 PL1 stopped PL0 task sp:0x81428f30 lr:0x8009f7c0 pc:0x80011374 err:exception mode ABT
 00:00:05 PL1 says goodbye
-exit with code 0 halting
 ```
 
 Debugging

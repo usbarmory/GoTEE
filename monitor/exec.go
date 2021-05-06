@@ -35,9 +35,9 @@ var monitorVectorTable = arm.VectorTable{
 // defined in exec.s
 func monitor()
 
-// Exec allows execution of a bare metal executable in user mode. The execution
-// is isolated from the invoking Go unikernel runtime, which can be returned to
-// with a a supervisor (SVC) exception or through timer interrupts (TODO).
+// Exec allows execution of an executable in user mode. The execution is
+// isolated from the invoking Go runtime as user mode can yield back to it
+// through exceptions (e.g. syscalls through SVC).
 //
 // The execution context pointer allows task initialization and it is updated
 // with the user mode program state at return, it can therefore be passed again
@@ -59,9 +59,9 @@ type ExecCtx struct {
 	R10  uint32
 	R11  uint32
 	R12  uint32
-	R13  uint32
-	R14  uint32
-	R15  uint32
+	R13  uint32 // SP
+	R14  uint32 // LR
+	R15  uint32 // PC
 	SPSR uint32
 	CPSR uint32
 
@@ -78,9 +78,12 @@ type ExecCtx struct {
 	g_sp uint32
 }
 
-// Mode returns the processor mode.
-func (ctx *ExecCtx) ExceptionMode() int {
-	return int(ctx.CPSR & 0x1f)
+func (ctx *ExecCtx) debug() {
+	log.Printf("\tr0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
+	log.Printf("\tr1:%.8x   r2:%.8x   r3:%.8x   r4:%.8x", ctx.R1, ctx.R2, ctx.R3, ctx.R4)
+	log.Printf("\tr5:%.8x   r6:%.8x   r7:%.8x   r8:%.8x", ctx.R5, ctx.R6, ctx.R7, ctx.R8)
+	log.Printf("\tr9:%.8x  r10:%.8x  r11:%.8x  r12:%.8x", ctx.R9, ctx.R10, ctx.R11, ctx.R12)
+	log.Printf("\tsp:%.8x   lr:%.8x   pc:%.8x spsr:%.8x", ctx.R13, ctx.R14, ctx.R15, ctx.SPSR)
 }
 
 func (ctx *ExecCtx) schedule() (err error) {
@@ -94,12 +97,28 @@ func (ctx *ExecCtx) schedule() (err error) {
 	arm.SetVectorTable(systemVectorTable)
 
 	if mode := ctx.ExceptionMode(); mode != arm.SVC_MODE {
+		if ctx.Debug {
+			ctx.debug()
+		}
+
 		return fmt.Errorf("exception mode %s", arm.ModeName(mode))
 	}
 
 	return
 }
 
+// Mode returns the processor mode.
+func (ctx *ExecCtx) ExceptionMode() int {
+	return int(ctx.CPSR & 0x1f)
+}
+
+// Run starts the execution context and handles user mode system calls. The
+// function yields to the invoking Go runtime only when exceptions are issued
+// in user mode.
+//
+// The function handles system calls (see Handler()) and only returns if
+// non-supervisor exceptions are issued or when `SYS_EXIT` system call is
+// handled.
 func (ctx *ExecCtx) Run() (err error) {
 	if ctx.Debug {
 		log.Printf("PL1 starting PL0 sp:%#.8x pc:%#.8x", ctx.R13, ctx.R15)
@@ -126,6 +145,8 @@ func (ctx *ExecCtx) Run() (err error) {
 	return
 }
 
+// Load returns an execution context initialized for the argument ELF
+// executable.
 func Load(elf []byte) *ExecCtx {
 	imx6.ARM.ConfigureMMU(tee.AppletStart, tee.AppletStart+uint32(tee.AppletSize), userModeFlags)
 

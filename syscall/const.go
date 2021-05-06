@@ -9,6 +9,6 @@ package syscall
 const (
 	SYS_EXIT = iota
 	SYS_WRITE
-	SYS_UTIME
+	SYS_NANOTIME
 	SYS_GETRANDOM
 )

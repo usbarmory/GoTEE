@@ -19,7 +19,7 @@ func printk(c byte) {
 
 //go:linkname nanotime1 runtime.nanotime1
 func nanotime1() int64 {
-	return syscall.Utime()
+	return syscall.Nanotime()
 }
 
 //go:linkname initRNG runtime.initRNG
