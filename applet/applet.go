@@ -10,7 +10,11 @@ import (
 	_ "unsafe"
 
 	"github.com/f-secure-foundry/GoTEE/syscall"
+
+	"github.com/f-secure-foundry/tamago/arm"
 )
+
+var ARM = &arm.CPU{}
 
 //go:linkname printk runtime.printk
 func printk(c byte) {
@@ -20,6 +24,13 @@ func printk(c byte) {
 //go:linkname nanotime1 runtime.nanotime1
 func nanotime1() int64 {
 	return syscall.Nanotime()
+
+	// A more efficient version is (as tamago allows PL0 access to generic
+	// counters):
+	//	return int64(ARM.TimerFn() * ARM.TimerMultiplier)
+	//
+	// But to stress test things and keep non-interleaved logging we keep
+	// the more demanding syscall for now.
 }
 
 //go:linkname initRNG runtime.initRNG
@@ -29,7 +40,7 @@ func initRNG() {
 
 //go:linkname hwinit runtime.hwinit
 func hwinit() {
-	// no initialization required in user mode
+	ARM.InitGenericTimers(0, 0)
 }
 
 //go:linkname getRandomData runtime.getRandomData
