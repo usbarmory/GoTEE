@@ -63,11 +63,11 @@ An emulated run under QEMU can be performed as follows:
 ```
 make example_ta && make qemu
 ...
-00:00:00 PL1 tamago/arm (go1.16.3) • TEE system/supervisor
+00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
 00:00:00 PL1 loaded applet addr:0x80000000 size:1752915 entry:0x80068fac
 00:00:00 PL1 will sleep until PL0 is done
 00:00:00 PL1 starting PL0 sp:0x8fffff00 pc:0x80068fac
-00:00:00 PL0 tamago/arm (go1.16.3) • TEE user applet
+00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet
 00:00:00 PL0 will sleep for 5 seconds
 00:00:01 PL1 says 1 missisipi
 00:00:01 PL0 says 1 missisipi
