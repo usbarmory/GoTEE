@@ -23,14 +23,13 @@ func printk(c byte) {
 
 //go:linkname nanotime1 runtime.nanotime1
 func nanotime1() int64 {
-	return syscall.Nanotime()
-
 	// A more efficient version is (as tamago allows PL0 access to generic
 	// counters):
 	//	return int64(ARM.TimerFn() * ARM.TimerMultiplier)
 	//
-	// But to stress test things and keep non-interleaved logging we keep
-	// the more demanding syscall for now.
+	// But to stress test things and have nicer non-interleaved logging we
+	// keep the more demanding syscall for now.
+	return syscall.Nanotime()
 }
 
 //go:linkname initRNG runtime.initRNG

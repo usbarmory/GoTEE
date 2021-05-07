@@ -64,9 +64,9 @@ An emulated run under QEMU can be performed as follows:
 make example_ta && make qemu
 ...
 00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
-00:00:00 PL1 loaded applet addr:0x80000000 size:1752915 entry:0x80068fac
+00:00:00 PL1 loaded applet addr:0x82000000 size:1756695 entry:0x82069080
 00:00:00 PL1 will sleep until PL0 is done
-00:00:00 PL1 starting PL0 sp:0x8fffff00 pc:0x80068fac
+00:00:00 PL1 starting PL0 sp:0x83ffff00 pc:0x82069080
 00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet
 00:00:00 PL0 will sleep for 5 seconds
 00:00:01 PL1 says 1 missisipi
@@ -74,13 +74,13 @@ make example_ta && make qemu
 ...
 00:00:05 PL1 says 5 missisipi
 00:00:05 PL0 says 5 missisipi
-00:00:05 PL0 about to read PL1 memory at 0x90010000
-00:00:05        r0:90010000   r1:814220c0   r2:00000001   r3:00000000
-00:00:05        r1:814220c0   r2:00000001   r3:00000000   r4:00000000
+00:00:05 PL0 about to read PL1 memory at 0x80010000
+00:00:05        r0:80010000   r1:824220c0   r2:00000001   r3:00000000
+00:00:05        r1:824220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
-00:00:05        r9:00000034  r10:814000e0  r11:900fbe44  r12:00000000
-00:00:05        sp:81428f30   lr:8009f7c0   pc:80011374 spsr:600000d0
-00:00:05 PL1 stopped PL0 task sp:0x81428f30 lr:0x8009f7c0 pc:0x80011374 err:exception mode ABT
+00:00:05        r9:00000034  r10:824000e0  r11:800fbedc  r12:00000000
+00:00:05        sp:82428f30   lr:8209fac8   pc:82011374 spsr:600000d0
+00:00:05 PL1 stopped PL0 task sp:0x82428f30 lr:0x8209fac8 pc:0x82011374 err:exception mode ABT
 00:00:05 PL1 says goodbye
 ```
 

@@ -6,17 +6,19 @@
 
 package syscall
 
-import (
-	_ "unsafe"
-)
-
 // defined in syscall.s
+
+// svc triggers a supervisor exception
 func svc()
+
 // Exit terminates the user mode executable scheduling.
 func Exit()
+
 // Write prints a single character on standard output.
 func Write(c byte)
+
 // Nanotime returns the system time in nanoseconds.
 func Nanotime() int64
+
 // GetRandom fills a byte array with random values.
 func GetRandom(b []byte, n uint)

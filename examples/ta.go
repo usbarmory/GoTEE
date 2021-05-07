@@ -33,19 +33,19 @@ func init() {
 }
 
 func testInvalidAccess() {
-	pl1RamStart := uint32(0x90010000)
+	pl1TextStart := tee.KernelStart + uint32(0x10000)
+	mem := (*uint32)(unsafe.Pointer(uintptr(pl1TextStart)))
 
-	log.Printf("PL0 about to read PL1 memory at %#x", pl1RamStart)
-
-	mem := (*uint32)(unsafe.Pointer(uintptr(pl1RamStart)))
+	log.Printf("PL0 about to read PL1 memory at %#x", pl1TextStart)
 	val := atomic.LoadUint32(mem)
+
 	res := "success (shouldn't happen)"
 
 	if val != 0xe59a1008 {
 		res = "fail (expected, but you should never see this)"
 	}
 
-	log.Printf("PL0 read PL1 memory %#x: %#x (%s)", pl1RamStart, val, res)
+	log.Printf("PL0 read PL1 memory %#x: %#x (%s)", pl1TextStart, val, res)
 }
 
 func testAbort() {

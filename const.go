@@ -6,19 +6,19 @@
 
 package tee
 
-// TODO: for now the 1st half of available RAM (USB armory Mk II layout) is
-// dedicated to the trusted applet, while the 2nd half belongs to the
-// supervisor.
+// TODO: for now we take a lazy approach of using 32MB at the beginning of
+// available RAM (USB armory Mk II layout) for the supervisor and the following
+// 32MB for the trusted applet.
 
 const (
 	// KernelStart defines the privileged RAM start address
-	KernelStart = 0x90000000
+	KernelStart = 0x80000000
 	// KernelSize defines the privileged RAM size
-	KernelSize = 0x10000000
+	KernelSize = 0x2000000
 	// AppletStart defines the unprivileged RAM start address
-	AppletStart = 0x80000000
+	AppletStart = 0x82000000
 	// AppletSize defines the unprivileged RAM size
-	AppletSize = 0x10000000
+	AppletSize = 0x2000000
 	// AppletStackOffset defines the unprivileged stack offset
 	AppletStackOffset = 0x100
 )

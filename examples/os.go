@@ -19,9 +19,8 @@ import (
 	"github.com/f-secure-foundry/GoTEE"
 	"github.com/f-secure-foundry/GoTEE/monitor"
 
-	"github.com/f-secure-foundry/tamago/soc/imx6"
-
 	"github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
+	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
 var Build string
@@ -68,7 +67,7 @@ func main() {
 	log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", applet.Memory.Start, len(appletELF), applet.R15)
 	wg.Add(1)
 
-	// show concurrent execution of PL1 and PL0 Go unikernels
+	// test concurrent execution of PL1 and PL0 Go unikernels
 
 	go func() {
 		applet.Run()

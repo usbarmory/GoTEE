@@ -28,12 +28,12 @@ QEMU ?= qemu-system-arm -machine mcimx6ul-evk -cpu cortex-a7 -m 512M \
 #### primary targets ####
 
 example_ta: APP=ta
-example_ta: TEXT_START=0x80010000
+example_ta: TEXT_START=0x82010000
 example_ta: imx
 	mv $(CURDIR)/ta $(CURDIR)/examples/ta
 
 example_os: APP=os
-example_os: TEXT_START=0x90010000
+example_os: TEXT_START=0x80010000
 example_os: imx
 
 imx: $(APP).imx
@@ -66,7 +66,7 @@ clean:
 qemu: example_os
 	$(QEMU) -kernel os
 
-qemu-gdb: TEXT_START=0x90010000
+qemu-gdb: TEXT_START=0x80010000
 qemu-gdb: GOFLAGS := $(GOFLAGS:-s=)
 qemu-gdb: GOFLAGS := $(GOFLAGS:-w=)
 qemu-gdb: example_os
