@@ -40,28 +40,42 @@ memory, which is used to test exception handling by the supervisor.
 A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
 interface is implemented for communication between the two processes.
 
-Executing
+Compiling
 =========
 
-For real hardware the PoC can be compiled for the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
-as follows:
+Build the [TamaGo compiler](https://github.com/f-secure-foundry/tamago-go)
+(or use the [latest binary release](https://github.com/f-secure-foundry/tamago-go/releases/latest)):
+
+```
+wget https://github.com/f-secure-foundry/tamago-go/archive/refs/tags/latest.zip
+unzip latest.zip
+cd tamago-go-latest/src && ./all.bash
+cd ../bin && export TAMAGO=`pwd`/go
+```
+
+Build the example trusted applet and kernel executables:
 
 ```
 make example_ta && make example_os
-
 ```
 
-The resulting `os.imx` can be executed via
-[SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
+Executing and debugging
+=======================
+
+Native hardware
+---------------
+
+The PoC can be executed on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
+by loading the compilation output `os.imx` [SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
 (note that for now the PoC only provides serial console feedback).
 
-Emulating
-=========
+Emulated hardware
+-----------------
 
-An emulated run under QEMU can be performed as follows:
+An emulated run under QEMU can be executed as follows:
 
 ```
-make example_ta && make qemu
+make example_ta && make example_os && make qemu
 ...
 00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
 00:00:00 PL1 loaded applet addr:0x82000000 size:1756695 entry:0x82069080

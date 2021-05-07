@@ -16,6 +16,12 @@ import (
 
 var ARM = &arm.CPU{}
 
+func init() {
+	if ARM.Mode() != arm.USR_MODE {
+		panic("unexpected processor mode")
+	}
+}
+
 //go:linkname printk runtime.printk
 func printk(c byte) {
 	syscall.Write(c)

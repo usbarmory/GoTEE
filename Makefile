@@ -63,13 +63,10 @@ dcd:
 clean:
 	@rm -fr examples/ta os *.bin *.imx *-signed.imx *.csf *.dcd
 
-qemu: example_os
+qemu:
 	$(QEMU) -kernel os
 
-qemu-gdb: TEXT_START=0x80010000
-qemu-gdb: GOFLAGS := $(GOFLAGS:-s=)
-qemu-gdb: GOFLAGS := $(GOFLAGS:-w=)
-qemu-gdb: example_os
+qemu-gdb:
 	$(QEMU) -kernel os -S -s
 
 #### dependencies ####
