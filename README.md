@@ -1,44 +1,47 @@
 Introduction
 ============
 
-> :warning: this is a PoC
+> :warning: this project is at PoC stage
 
 This project demonstrates concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
 privileged and unprivileged modes, interacting with each other through
 monitor/supervisor mode and custom system calls
 
-The PoC serves as foundation to develop a
-[TamaGo](https://github.com/f-secure-foundry/tamago) based Trusted Execution
-Environments (TEE), with the memory safety and capabilities of Go taken to bare
-metal execution within TrustZone Secure World (or equivalent technology).
+GoTEE aims to implement a [TamaGo](https://github.com/f-secure-foundry/tamago)
+based Trusted Execution Environments (TEE), bringing Go memory safety,
+convenience and capabilities to bare metal execution within TrustZone Secure
+World or equivalent isolation technology.
 
-While the PoC employs a Go unikernel for both privileged and unprivileged
-modes, the latter can be loaded with any bare metal applet (e.g. C, Rust)
+In TEE nomenclature, the privileged unikernel is commonly referred to as
+trusted OS, while the unprivileged one represents a trusted applet (TA).
+
+While the repository examples implement a Go unikernel for both the trusted OS
+and TA either can be replaced with any bare metal code (e.g.  C, Rust)
 implementing the syscall API.
 
 A compatibility layer for
 [libutee](https://optee.readthedocs.io/en/latest/architecture/libraries.html#libutee)
-is planned, allowing execution of [OP-TEE](https://www.op-tee.org/) compatible
-applets.
+is planned, allowing execution of/as [OP-TEE](https://www.op-tee.org/)
+compatible applets.
 
 ![diagram](https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg)
 
 Operation
 =========
 
-The PoC performs basic testing of concurrent execution of two
-[TamaGo](https://github.com/f-secure-foundry/tamago) unikernels at
-different privilege levels:
+The example trusted OS/applet combination performs basic testing of concurrent
+execution of two [TamaGo](https://github.com/f-secure-foundry/tamago)
+unikernels at different privilege levels:
 
- * PL1 / system mode: trusted OS
- * PL2 / user mode: trusted applet
+ * PL1 / privileged system+supervisor mode: trusted OS
+ * PL2 / unprivileged user mode: trusted applet
 
-The trusted applet sleeps for 5 seconds before attempting to read privileged
-memory, which is used to test exception handling by the supervisor.
+The TA sleeps for 5 seconds before attempting to read privileged OS memory,
+which triggers an exception handled by the supervisor which terminates the TA.
 
 A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
-interface is implemented for communication between the two processes.
+interface is implemented for communication between the two privilege levels.
 
 Compiling
 =========
