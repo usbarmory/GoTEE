@@ -23,11 +23,6 @@ import (
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
-var Build string
-var Revision string
-
-var banner string
-
 //go:linkname ramStart runtime.ramStart
 var ramStart uint32 = tee.KernelStart
 
@@ -55,24 +50,27 @@ func init() {
 	<-debugConsole
 }
 
+func run(applet *monitor.ExecCtx, wg *sync.WaitGroup) {
+	applet.Run()
+	wg.Done()
+}
+
 func main() {
 	var wg sync.WaitGroup
 
 	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
-	applet := monitor.Load(appletELF)
-	applet.Handler = monitor.Handler
-	applet.Debug = true
+	ta := monitor.Load(appletELF)
+	ta.Debug = true
 
-	log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", applet.Memory.Start, len(appletELF), applet.R15)
+	// register receiver methods for RPC test (see rpc.go)
+	ta.Server.Register(&Receiver{})
+
+	log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", ta.Memory.Start, len(appletELF), ta.R15)
 	wg.Add(1)
 
-	// test concurrent execution of PL1 and PL0 Go unikernels
-
-	go func() {
-		applet.Run()
-		wg.Done()
-	}()
+	// test concurrent execution of PL1 applet and PL0 supervisor
+	go run(ta, &wg)
 
 	go func() {
 		log.Printf("PL1 will sleep until PL0 is done")

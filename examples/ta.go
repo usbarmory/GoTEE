@@ -16,6 +16,7 @@ import (
 
 	"github.com/f-secure-foundry/GoTEE"
 	"github.com/f-secure-foundry/GoTEE/applet"
+	"github.com/f-secure-foundry/GoTEE/syscall"
 )
 
 //go:linkname ramStart runtime.ramStart
@@ -32,11 +33,34 @@ func init() {
 	log.SetOutput(os.Stdout)
 }
 
+func testRNG(n int) {
+	buf := make([]byte, n)
+	syscall.GetRandom(buf, uint(n))
+	log.Printf("PL0 obtained %d random bytes from PL1: %x", n, buf)
+}
+
+func testRPC() {
+	rpcClient := syscall.NewClient()
+	defer rpcClient.Close()
+
+	res := ""
+	req := "hello"
+	log.Printf("PL0 requests echo via RPC: %s", req)
+
+	err := rpcClient.Call("Receiver.Echo", req, &res)
+
+	if err != nil {
+		log.Printf("PL0 received RPC error: %v", err)
+	} else {
+		log.Printf("PL0 received echo via RPC: %s", res)
+	}
+}
+
 func testInvalidAccess() {
 	pl1TextStart := tee.KernelStart + uint32(0x10000)
 	mem := (*uint32)(unsafe.Pointer(uintptr(pl1TextStart)))
 
-	log.Printf("PL0 about to read PL1 memory at %#x", pl1TextStart)
+	log.Printf("PL0 is about to read PL1 memory at %#x", pl1TextStart)
 	val := atomic.LoadUint32(mem)
 
 	res := "success (shouldn't happen)"
@@ -57,8 +81,16 @@ func testAbort() {
 
 func main() {
 	log.Printf("PL0 %s/%s (%s) • TEE user applet", runtime.GOOS, runtime.GOARCH, runtime.Version())
+
+	// test syscall interface
+	testRNG(16)
+
+	// test RPC interface
+	testRPC()
+
 	log.Printf("PL0 will sleep for 5 seconds")
 
+	// test concurrent execution of PL1 applet and PL0 supervisor
 	for i := 0; i < 5; i++ {
 		time.Sleep(1 * time.Second)
 		log.Printf("PL0 says %d missisipi", i+1)

@@ -43,6 +43,18 @@ which triggers an exception handled by the supervisor which terminates the TA.
 A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
 interface is implemented for communication between the two privilege levels.
 
+Status
+======
+
+- [x] PL0/PL1 separation
+- [ ] PL0 virtual address space
+- [x] PL0/PL1 base syscall API
+- [x] PL0/PL1 user net/rpc API
+- [ ] PL0/PL1 GoTEE crypto API
+- [x] Secure World
+- [ ] Normal World
+- [ ] TEE Client API
+
 Compiling
 =========
 
@@ -80,24 +92,28 @@ An emulated run under QEMU can be executed as follows:
 ```
 make example_ta && make example_os && make qemu
 ...
+
 00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
-00:00:00 PL1 loaded applet addr:0x82000000 size:1756695 entry:0x82069080
+00:00:00 PL1 loaded applet addr:0x82000000 size:3896623 entry:0x8206dab8
 00:00:00 PL1 will sleep until PL0 is done
-00:00:00 PL1 starting PL0 sp:0x83ffff00 pc:0x82069080
+00:00:00 PL1 starting PL0 sp:0x83ffff00 pc:0x8206dab8
 00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet
+00:00:00 PL0 obtained 16 random bytes from PL1: fe2101405f0d4b61acd3814175b8cd55
+00:00:00 PL0 requests echo via RPC: hello
+00:00:00 PL0 received echo via RPC: hello
 00:00:00 PL0 will sleep for 5 seconds
 00:00:01 PL1 says 1 missisipi
 00:00:01 PL0 says 1 missisipi
 ...
 00:00:05 PL1 says 5 missisipi
 00:00:05 PL0 says 5 missisipi
-00:00:05 PL0 about to read PL1 memory at 0x80010000
-00:00:05        r0:80010000   r1:824220c0   r2:00000001   r3:00000000
-00:00:05        r1:824220c0   r2:00000001   r3:00000000   r4:00000000
+00:00:05 PL0 is about to read PL1 memory at 0x80010000
+00:00:05        r0:80010000   r1:828220c0   r2:00000001   r3:00000000
+00:00:05        r1:828220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
-00:00:05        r9:00000034  r10:824000e0  r11:800fbedc  r12:00000000
-00:00:05        sp:82428f30   lr:8209fac8   pc:82011374 spsr:600000d0
-00:00:05 PL1 stopped PL0 task sp:0x82428f30 lr:0x8209fac8 pc:0x82011374 err:exception mode ABT
+00:00:05        r9:00000037  r10:828000e0  r11:802bd7d8  r12:00000000
+00:00:05        sp:8284df2c   lr:82159308   pc:82011374 spsr:600000d0
+00:00:05 PL1 stopped PL0 task sp:0x8284df2c lr:0x82159308 pc:0x82011374 err:exception mode ABT
 00:00:05 PL1 says goodbye
 ```
 

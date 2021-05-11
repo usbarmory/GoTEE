@@ -4,11 +4,18 @@
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
 
+// Package monitor provides supervisor support for TamaGo unikernels
+// to allow scheduling of user mode executables.
+//
+// This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
+// supported by the TamaGo framework for bare metal Go on ARM SoCs, see
+// https://github.com/f-secure-foundry/tamago.
 package monitor
 
 import (
 	"fmt"
 	"log"
+	"net/rpc"
 	"runtime"
 
 	"github.com/f-secure-foundry/GoTEE"
@@ -71,11 +78,17 @@ type ExecCtx struct {
 	// Handler, if not nil, handles user syscalls
 	Handler func(ctx *ExecCtx) error
 
+	// Server, if not nil, serves RPC calls over syscalls
+	Server *rpc.Server
+
 	// Debug controls activation of debug logs
 	Debug bool
 
 	// executing g stack pointer
 	g_sp uint32
+
+	// Write() buffer
+	buf []byte
 }
 
 func (ctx *ExecCtx) debug() {
@@ -163,5 +176,7 @@ func Load(elf []byte) *ExecCtx {
 		R15: parseELF(mem, elf),
 		SPSR: userModePSR,
 		Memory: mem,
+		Handler: Handler,
+		Server: rpc.NewServer(),
 	}
 }

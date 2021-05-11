@@ -35,8 +35,8 @@ func parseELF(mem *dma.Region, buf []byte) (entry uint32) {
 			panic(fmt.Sprintf("failed to read LOAD section at idx %d, %q", idx, err))
 		}
 
-		offset := uint32(prg.Paddr) - mem.Start
-		mem.Write(mem.Start, b, int(offset))
+		off := uint32(prg.Paddr) - mem.Start
+		mem.Write(mem.Start, int(off), b)
 	}
 
 	return uint32(f.Entry)

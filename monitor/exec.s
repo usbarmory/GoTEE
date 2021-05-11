@@ -13,7 +13,7 @@ GLOBL	·execCtx+0(SB),RODATA,$4
 // func Exec(ctx *ExecCtx)
 TEXT ·Exec(SB),$0-4
 	// save caller registers
-	MOVM.DB.W	[R0-R12, R14], (R13)	// push {r0-rN, r14}
+	MOVM.DB.W	[R0-R12, R14], (R13)	// push {r0-r12, r14}
 
 	// get argument pointer
 	ADD	$(14*4), R13, R13

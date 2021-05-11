@@ -8,6 +8,7 @@ package monitor
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 
 	"github.com/f-secure-foundry/GoTEE/syscall"
@@ -15,8 +16,8 @@ import (
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
-// Handler is invoked on any supervisor (SVC) exceptions raised by the
-// execution context to handle supported GoTEE system calls.
+// Handler is the default handler for supervisor (SVC) exceptions raised by
+// the execution context to handle supported GoTEE system calls.
 func Handler(ctx *ExecCtx) (err error) {
 	switch num := ctx.R0; num {
 	case syscall.SYS_EXIT:
@@ -31,11 +32,19 @@ func Handler(ctx *ExecCtx) (err error) {
 		off := int(ctx.R1 - ctx.Memory.Start)
 		buf := make([]byte, ctx.R2)
 
-		if n, err := rand.Read(buf); err != nil || n != int(ctx.R2) {
-			panic("fatal getrandom error")
+		if !(off >= 0 && off < (ctx.Memory.Size - len(buf))) {
+			return errors.New("invalid read offset")
 		}
 
-		ctx.Memory.Write(ctx.Memory.Start, buf, off)
+		if n, err := rand.Read(buf); err != nil || n != int(ctx.R2) {
+			return errors.New("internal error")
+		}
+
+		ctx.Memory.Write(ctx.Memory.Start, off, buf)
+	case syscall.SYS_RPC_REQ, syscall.SYS_RPC_RES:
+		if ctx.Server != nil {
+			err = ctx.rpc()
+		}
 	default:
 		err = fmt.Errorf("invalid syscall %d", num)
 	}

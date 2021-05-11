@@ -72,7 +72,7 @@ qemu-gdb:
 #### dependencies ####
 
 $(APP): check_tamago
-	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go
+	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go examples/rpc.go
 
 $(APP).dcd: check_tamago
 $(APP).dcd: GOMODCACHE=$(shell ${TAMAGO} env GOMODCACHE)
