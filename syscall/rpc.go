@@ -30,9 +30,15 @@ type Stream struct {
 // Read reads up to len(p) bytes into p, it never returns an error. The read is
 // requested, through the Stream ReadSyscall, to the supervisor.
 func (s *Stream) Read(p []byte) (int, error) {
+	// Go net/rcp client constantly polls for responses, even when no
+	// outstanding requests are present (see *Client.input() in
+	// net/rpc/client.go)
+	//
+	// To avoid a background loop of SYS_READ system calls we return io.EOF
+	// to shut down the rpc.Client after each request.
+
 	n := Read(s.ReadSyscall, p, uint(len(p)))
 	return int(n), io.EOF
-	// FIXME: on second try this leads to RPC error: connection is shut down
 }
 
 // Write writes len(p) bytes from p to the underlying data stream, it never
@@ -49,10 +55,18 @@ func (s *Stream) Close() error {
 	return nil
 }
 
-// NewClient returns a new client suitable for RPC calls to the supervisor.
+// NewClient returns a new client suitable for RPC calls to the supervisor. The
+// client automatically closes after Call() is invoked on it the first time,
+// therefore a new instance is needed for each call (also see Call()).
 func NewClient() *rpc.Client {
 	return jsonrpc.NewClient(&Stream{
 		ReadSyscall:  SYS_RPC_RES,
 		WriteSyscall: SYS_RPC_REQ,
 	})
+}
+
+// Call is a convenience method that issues an RPC call on a disposable client
+// created with NewClient().
+func Call(serviceMethod string, args interface{}, reply interface{}) error {
+	return NewClient().Call(serviceMethod, args, reply)
 }

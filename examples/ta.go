@@ -40,14 +40,11 @@ func testRNG(n int) {
 }
 
 func testRPC() {
-	rpcClient := syscall.NewClient()
-	defer rpcClient.Close()
-
 	res := ""
 	req := "hello"
-	log.Printf("PL0 requests echo via RPC: %s", req)
 
-	err := rpcClient.Call("Receiver.Echo", req, &res)
+	log.Printf("PL0 requests echo via RPC: %s", req)
+	err := syscall.Call("Receiver.Echo", req, &res)
 
 	if err != nil {
 		log.Printf("PL0 received RPC error: %v", err)
