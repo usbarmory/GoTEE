@@ -15,7 +15,7 @@ import (
 	"github.com/f-secure-foundry/tamago/dma"
 )
 
-func parseELF(mem *dma.Region, buf []byte) (entry uint32) {
+func parseELF(mem *dma.Region, buf []byte) (entry uint32, err error) {
 	f, err := elf.NewFile(bytes.NewReader(buf))
 
 	if err != nil {
@@ -36,8 +36,13 @@ func parseELF(mem *dma.Region, buf []byte) (entry uint32) {
 		}
 
 		off := uint32(prg.Paddr) - mem.Start
+
+		if off > mem.Start+uint32(mem.Size) {
+			return 0, fmt.Errorf("incompatible memory layout (paddr:%x off:%x)", prg.Paddr, off)
+		}
+
 		mem.Write(mem.Start, int(off), b)
 	}
 
-	return uint32(f.Entry)
+	return uint32(f.Entry), nil
 }

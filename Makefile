@@ -27,14 +27,19 @@ QEMU ?= qemu-system-arm -machine mcimx6ul-evk -cpu cortex-a7 -m 512M \
 
 #### primary targets ####
 
+example_os: APP=os_secure
+example_os: TEXT_START=0x80010000
+example_os: imx
+
 example_ta: APP=ta
 example_ta: TEXT_START=0x82010000
 example_ta: imx
 	mv $(CURDIR)/ta $(CURDIR)/examples/ta
 
-example_os: APP=os
-example_os: TEXT_START=0x80010000
-example_os: imx
+example_ns: APP=os_nonsecure
+example_ns: TEXT_START=0x84010000
+example_ns: imx
+	mv $(CURDIR)/os_nonsecure $(CURDIR)/examples/os_nonsecure
 
 imx: $(APP).imx
 
@@ -61,18 +66,18 @@ dcd:
 	cp -f $(GOMODCACHE)/$(TAMAGO_PKG)/board/f-secure/usbarmory/mark-two/imximage.cfg $(APP).dcd; \
 
 clean:
-	@rm -fr examples/ta os *.bin *.imx *-signed.imx *.csf *.dcd
+	@rm -fr examples/ta examples/os_nonsecure os_secure *.bin *.imx *-signed.imx *.csf *.dcd
 
 qemu:
-	$(QEMU) -kernel os
+	$(QEMU) -kernel os_secure
 
 qemu-gdb:
-	$(QEMU) -kernel os -S -s
+	$(QEMU) -kernel os_secure -S -s
 
 #### dependencies ####
 
 $(APP): check_tamago
-	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go examples/rpc.go
+	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go examples/mem.go examples/rpc.go
 
 $(APP).dcd: check_tamago
 $(APP).dcd: GOMODCACHE=$(shell ${TAMAGO} env GOMODCACHE)

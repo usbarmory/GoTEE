@@ -14,19 +14,18 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/f-secure-foundry/GoTEE"
 	"github.com/f-secure-foundry/GoTEE/applet"
 	"github.com/f-secure-foundry/GoTEE/syscall"
 )
 
 //go:linkname ramStart runtime.ramStart
-var ramStart uint32 = tee.AppletStart
+var ramStart uint32 = AppletStart
 
 //go:linkname ramSize runtime.ramSize
-var ramSize uint32 = tee.AppletSize
+var ramSize uint32 = AppletSize
 
 //go:linkname ramStackOffset runtime.ramStackOffset
-var ramStackOffset uint32 = tee.AppletStackOffset
+var ramStackOffset uint32 = 0x100
 
 func init() {
 	log.SetFlags(log.Ltime)
@@ -54,7 +53,7 @@ func testRPC() {
 }
 
 func testInvalidAccess() {
-	pl1TextStart := tee.KernelStart + uint32(0x10000)
+	pl1TextStart := KernelStart + uint32(0x10000)
 	mem := (*uint32)(unsafe.Pointer(uintptr(pl1TextStart)))
 
 	log.Printf("PL0 is about to read PL1 memory at %#x", pl1TextStart)

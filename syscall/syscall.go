@@ -13,7 +13,9 @@
 package syscall
 
 // defined in syscall.s
-func svc()
+
+// Supervisors triggers a supervisor call.
+func Supervisor()
 
 // Exit terminates the user mode executable scheduling through a system call to
 // the supervisor. It can only be executed when running in user mode.

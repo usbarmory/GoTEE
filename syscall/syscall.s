@@ -6,8 +6,8 @@
 
 #include "go_asm.h"
 
-// func svc()
-TEXT ·svc(SB),$0
+// func Supervisor()
+TEXT ·Supervisor(SB),$0
 	SWI	$0
 	RET
 

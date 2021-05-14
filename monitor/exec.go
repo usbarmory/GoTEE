@@ -18,15 +18,17 @@ import (
 	"net/rpc"
 	"runtime"
 
-	"github.com/f-secure-foundry/GoTEE"
-
 	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
 const userModeFlags = arm.TTE_AP_011 | arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION_1MB
-const userModePSR uint32 = (0b111 << 6) | arm.USR_MODE
+
+const (
+	UserMode   = (0b111 << 6) | arm.USR_MODE
+	SystemMode = (0b111 << 6) | arm.SYS_MODE
+)
 
 var systemVectorTable = arm.SystemVectorTable()
 
@@ -39,6 +41,7 @@ var monitorVectorTable = arm.VectorTable{
 	IRQ:           monitor,
 	FIQ:           monitor,
 }
+
 // defined in exec.s
 func monitor()
 
@@ -80,6 +83,9 @@ type ExecCtx struct {
 
 	// Server, if not nil, serves RPC calls over syscalls
 	Server *rpc.Server
+
+	// TrustZone configuration
+	NonSecure bool
 
 	// Debug controls activation of debug logs
 	Debug bool
@@ -133,10 +139,6 @@ func (ctx *ExecCtx) ExceptionMode() int {
 // non-supervisor exceptions are issued or when `SYS_EXIT` system call is
 // handled.
 func (ctx *ExecCtx) Run() (err error) {
-	if ctx.Debug {
-		log.Printf("PL1 starting PL0 sp:%#.8x pc:%#.8x", ctx.R13, ctx.R15)
-	}
-
 	for {
 		if err = ctx.schedule(); err != nil {
 			break
@@ -151,32 +153,35 @@ func (ctx *ExecCtx) Run() (err error) {
 		runtime.Gosched()
 	}
 
-	if ctx.Debug {
-		log.Printf("PL1 stopped PL0 task sp:%#.8x lr:%#.8x pc:%#.8x err:%v", ctx.R13, ctx.R14, ctx.R15, err)
-	}
-
 	return
 }
 
 // Load returns an execution context initialized for the argument ELF
 // executable.
-func Load(elf []byte) *ExecCtx {
-	imx6.ARM.ConfigureMMU(tee.AppletStart, tee.AppletStart+uint32(tee.AppletSize), userModeFlags)
+func Load(elf []byte, start uint32, size int) (ctx *ExecCtx, err error) {
+	imx6.ARM.ConfigureMMU(start, start+uint32(size), userModeFlags)
 
 	mem := &dma.Region{
-		Start: tee.AppletStart,
-		Size:  tee.AppletSize,
+		Start: start,
+		Size:  size,
 	}
 
 	mem.Init()
 	mem.Reserve(mem.Size, 0)
 
-	return &ExecCtx{
-		R13: mem.Start + uint32(mem.Size) - tee.AppletStackOffset,
-		R15: parseELF(mem, elf),
-		SPSR: userModePSR,
-		Memory: mem,
-		Handler: Handler,
-		Server: rpc.NewServer(),
+	entry, err := parseELF(mem, elf)
+
+	if err != nil {
+		return
 	}
+
+	ctx = &ExecCtx{
+		R15:     entry,
+		SPSR:    UserMode,
+		Memory:  mem,
+		Handler: Handler,
+		Server:  rpc.NewServer(),
+	}
+
+	return
 }

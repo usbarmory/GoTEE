@@ -24,7 +24,7 @@ func (ctx *ExecCtx) Read(p []byte) (n int, err error) {
 		return 0, errors.New("invalid read length")
 	}
 
-	if !(off >= 0 && off < (ctx.Memory.Size - len(p))) {
+	if !(off >= 0 && off < (ctx.Memory.Size-len(p))) {
 		return 0, errors.New("invalid read offset")
 	}
 
@@ -58,7 +58,7 @@ func (ctx *ExecCtx) rpc() (err error) {
 			return errors.New("invalid buffer size")
 		}
 
-		if !(off >= 0 && off < (ctx.Memory.Size - len(ctx.buf))) {
+		if !(off >= 0 && off < (ctx.Memory.Size-len(ctx.buf))) {
 			return errors.New("invalid read offset")
 		}
 

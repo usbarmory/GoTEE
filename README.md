@@ -31,11 +31,12 @@ Operation
 =========
 
 The example trusted OS/applet combination performs basic testing of concurrent
-execution of two [TamaGo](https://github.com/f-secure-foundry/tamago)
+execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
 unikernels at different privilege levels:
 
- * PL1 / privileged system+supervisor mode: trusted OS
- * PL2 / unprivileged user mode: trusted applet
+ * Trusted OS, running in Secure World at privileged level (PL1, system mode)
+ * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
+ * Main OS, running in NonSecure World at privileged level (PL1, system mode)
 
 The TA sleeps for 5 seconds before attempting to read privileged OS memory,
 which triggers an exception handled by the supervisor which terminates the TA.
@@ -51,8 +52,10 @@ Status
 - [x] PL0/PL1 base syscall API
 - [x] PL0/PL1 user net/rpc API
 - [ ] PL0/PL1 GoTEE crypto API
-- [x] Secure World
-- [ ] Normal World
+- [x] Secure World execution
+- [x] Normal World execution
+- [ ] Normal World isolation
+- [ ] Secure/Normal World API
 - [ ] TEE Client API
 
 Compiling
@@ -71,7 +74,7 @@ cd ../bin && export TAMAGO=`pwd`/go
 Build the example trusted applet and kernel executables:
 
 ```
-make example_ta && make example_os
+make example_ta && make example_ns && make example_os
 ```
 
 Executing and debugging
@@ -90,7 +93,7 @@ Emulated hardware
 An emulated run under QEMU can be executed as follows:
 
 ```
-make example_ta && make example_os && make qemu
+make example_ta && make example_ns && make example_os && make qemu
 ...
 
 00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
@@ -121,7 +124,7 @@ Debugging
 =========
 
 ```
-make example_ta && make qemu-gdb
+make example_ta && make example_ns && make qemu-gdb
 ```
 
 ```

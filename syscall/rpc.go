@@ -22,7 +22,7 @@ import (
 // should be avoided.
 type Stream struct {
 	// ReadSyscall is the syscall number associated to Read()
-	ReadSyscall  uint
+	ReadSyscall uint
 	// ReadSyscall is the syscall number associated to Write()
 	WriteSyscall uint
 }

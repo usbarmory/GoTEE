@@ -8,7 +8,7 @@ package main
 
 // example receiver for user mode <--> system RPC over system calls
 
-type Receiver struct {}
+type Receiver struct{}
 
 func (rcv *Receiver) Echo(in string, out *string) error {
 	*out = in

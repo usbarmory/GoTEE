@@ -32,7 +32,7 @@ func Handler(ctx *ExecCtx) (err error) {
 		off := int(ctx.R1 - ctx.Memory.Start)
 		buf := make([]byte, ctx.R2)
 
-		if !(off >= 0 && off < (ctx.Memory.Size - len(buf))) {
+		if !(off >= 0 && off < (ctx.Memory.Size-len(buf))) {
 			return errors.New("invalid read offset")
 		}
 
