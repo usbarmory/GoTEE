@@ -95,13 +95,12 @@ An emulated run under QEMU can be executed as follows:
 ```
 make example_ta && make example_ns && make example_os && make qemu
 ...
-
-00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor
-00:00:00 PL1 loaded applet addr:0x82000000 size:3896623 entry:0x8206dab8
+00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor (Secure World)
+00:00:00 PL1 loaded applet addr:0x82000000 size:3897014 entry:0x8206dab8
 00:00:00 PL1 will sleep until PL0 is done
-00:00:00 PL1 starting PL0 sp:0x83ffff00 pc:0x8206dab8
-00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet
-00:00:00 PL0 obtained 16 random bytes from PL1: fe2101405f0d4b61acd3814175b8cd55
+00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
+00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet (Secure World)
+00:00:00 PL0 obtained 16 random bytes from PL1: cc73b71d15a62c682a4ddb3e1bd75e6d
 00:00:00 PL0 requests echo via RPC: hello
 00:00:00 PL0 received echo via RPC: hello
 00:00:00 PL0 will sleep for 5 seconds
@@ -114,10 +113,13 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:05        r0:80010000   r1:828220c0   r2:00000001   r3:00000000
 00:00:05        r1:828220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
-00:00:05        r9:00000037  r10:828000e0  r11:802bd7d8  r12:00000000
-00:00:05        sp:8284df2c   lr:82159308   pc:82011374 spsr:600000d0
-00:00:05 PL1 stopped PL0 task sp:0x8284df2c lr:0x82159308 pc:0x82011374 err:exception mode ABT
-00:00:05 PL1 says goodbye
+00:00:05        r9:00000037  r10:828000e0  r11:802bd9c0  r12:00000000
+00:00:05        sp:8284df2c   lr:821593d8   pc:82011374 spsr:600000d0
+00:00:05 PL1 stopped mode:USR ns:false sp:0x8284df2c lr:0x821593d8 pc:0x82011374 err:exception mode ABT
+00:00:05 PL1 loaded kernel addr:0x84000000 size:1835320 entry:0x84068e04
+00:00:05 PL1 starting mode:SYS ns:true sp:0x00000000 pc:0x84068e04
+00:00:05 PL1 tamago/arm (go1.16.4) • system/supervisor (NonSecure World)
+00:00:05 PL1 says goodbye (NS)
 ```
 
 Debugging

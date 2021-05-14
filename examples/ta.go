@@ -76,7 +76,7 @@ func testAbort() {
 }
 
 func main() {
-	log.Printf("PL0 %s/%s (%s) • TEE user applet", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL0 %s/%s (%s) • TEE user applet (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	// test syscall interface
 	testRNG(16)

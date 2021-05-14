@@ -71,7 +71,7 @@ func main() {
 	var os *monitor.ExecCtx
 	var err error
 
-	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	if ta, err = monitor.Load(taELF, AppletStart, AppletSize); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)

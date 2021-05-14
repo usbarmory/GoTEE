@@ -37,6 +37,6 @@ func init() {
 }
 
 func main() {
-	log.Printf("PL1 %s/%s (%s) • system/supervisor (NS)", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL1 %s/%s (%s) • system/supervisor (NonSecure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 	log.Printf("PL1 says goodbye (NS)")
 }
