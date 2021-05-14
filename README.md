@@ -38,6 +38,9 @@ unikernels at different privilege levels:
  * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
  * Main OS, running in NonSecure World at privileged level (PL1, system mode)
 
+> :warning: the main OS can be anything (e.g. Linux), TamaGo is simply used for
+> a self-contained example.
+
 The TA sleeps for 5 seconds before attempting to read privileged OS memory,
 which triggers an exception handled by the supervisor which terminates the TA.
 

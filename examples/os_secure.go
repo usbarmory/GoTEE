@@ -113,6 +113,9 @@ func main() {
 		log.Printf("PL1 loaded kernel addr:%#x size:%d entry:%#x", os.Memory.Start, len(osELF), os.R15)
 	}
 
+	// TODO: there is no lockdown of Secure hardware peripherals or Secure
+	// memory for now.
+
 	os.NonSecure = true
 	os.SPSR = monitor.SystemMode
 	os.Debug = true
