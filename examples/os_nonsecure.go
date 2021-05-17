@@ -39,7 +39,7 @@ func init() {
 }
 
 func main() {
-	log.Printf("PL1 %s/%s (%s) • system/supervisor (NonSecure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL1 %s/%s (%s) • system/supervisor (Normal World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	// yield back to secure monitor
 	syscall.Monitor()

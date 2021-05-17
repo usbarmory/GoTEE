@@ -45,7 +45,7 @@ unikernels at different privilege levels:
 
  * Trusted OS, running in Secure World at privileged level (PL1, system mode)
  * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
- * Main OS, running in NonSecure World at privileged level (PL1, system mode)
+ * Main OS, running in Normal World at privileged level (PL1, system mode)
 
 > :warning: the main OS can be anything (e.g. Linux), TamaGo is simply used for
 > a self-contained example.
@@ -113,7 +113,7 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:00 PL1 will sleep until applet and kernel are done
 00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
 00:00:00 PL1 starting mode:SYS ns:true  sp:0x00000000 pc:0x8406c6c4
-00:00:00 PL1 tamago/arm (go1.16.4) • system/supervisor (NonSecure World)
+00:00:00 PL1 tamago/arm (go1.16.4) • system/supervisor (Normal World)
 00:00:00        r0:00000000   r1:848220c0   r2:00000001   r3:00000000
 00:00:00        r1:848220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:00        r5:00000000   r6:00000000   r7:00000000   r8:00000007
