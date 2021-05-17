@@ -97,7 +97,8 @@ type ExecCtx struct {
 	buf []byte
 }
 
-func (ctx *ExecCtx) debug() {
+// Print logs the execution context state.
+func (ctx *ExecCtx) Print() {
 	log.Printf("\tr0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
 	log.Printf("\tr1:%.8x   r2:%.8x   r3:%.8x   r4:%.8x", ctx.R1, ctx.R2, ctx.R3, ctx.R4)
 	log.Printf("\tr5:%.8x   r6:%.8x   r7:%.8x   r8:%.8x", ctx.R5, ctx.R6, ctx.R7, ctx.R8)
@@ -117,7 +118,7 @@ func (ctx *ExecCtx) schedule() (err error) {
 
 	if mode := ctx.ExceptionMode(); mode != arm.SVC_MODE {
 		if ctx.Debug {
-			ctx.debug()
+			ctx.Print()
 		}
 
 		return fmt.Errorf("exception mode %s", arm.ModeName(mode))

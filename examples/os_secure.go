@@ -83,30 +83,6 @@ func main() {
 	ta.Server.Register(&Receiver{})
 	ta.Debug = true
 
-	// test concurrent execution of:
-	//   Secure    World PL0 (supervisor mode) - secure OS (this program)
-	//   Secure    World PL1 (user mode)       - trusted applet
-	wg.Add(1)
-	go run(ta, &wg)
-
-	go func() {
-		log.Printf("PL1 will sleep until PL0 is done")
-
-		for i := 0; i < 60; i++ {
-			time.Sleep(1 * time.Second)
-			log.Printf("PL1 says %d missisipi", i+1)
-		}
-	}()
-	wg.Wait()
-
-	if len(osELF) == 0 {
-		log.Printf("PL1 says goodbye")
-		return
-	}
-
-	// test execution of:
-	//   NonSecure World PL0 (supervisor mode) - main OS
-
 	if os, err = monitor.Load(osELF, NonSecureStart, NonSecureSize); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
 	} else {
@@ -123,9 +99,23 @@ func main() {
 	// grant access to CP10 and CP11
 	monitor.NonSecureAccess(1<<11 | 1<<10)
 
-	// this will take over as we have no Secure/Normal World API yet
-	run(os, &wg)
+	// test concurrent execution of:
+	//   Secure    World PL0 (supervisor mode) - secure OS (this program)
+	//   Secure    World PL1 (user mode)       - trusted applet
+	//   NonSecure World PL0 (supervisor mode) - main OS
+	wg.Add(2)
+	go run(ta, &wg)
+	go run(os, &wg)
 
-	// unreachable
+	go func() {
+		log.Printf("PL1 will sleep until applet and kernel are done")
+
+		for i := 0; i < 60; i++ {
+			time.Sleep(1 * time.Second)
+			log.Printf("PL1 says %d missisipi", i+1)
+		}
+	}()
+	wg.Wait()
+
 	log.Printf("PL1 says goodbye")
 }

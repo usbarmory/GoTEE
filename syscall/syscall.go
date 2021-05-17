@@ -14,8 +14,11 @@ package syscall
 
 // defined in syscall.s
 
-// Supervisors triggers a supervisor call.
+// Supervisors triggers a supervisor call (SWI/SVC).
 func Supervisor()
+
+// Monitor triggers a secure monitor call (SMC).
+func Monitor()
 
 // Exit terminates the user mode executable scheduling through a system call to
 // the supervisor. It can only be executed when running in user mode.

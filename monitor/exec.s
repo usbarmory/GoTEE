@@ -48,7 +48,7 @@ restore:
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
-#define USER_EXCEPTION()							\
+#define MONITOR_EXCEPTION()							\
 	/* save caller registers */						\
 										\
 	MOVW	·execCtx(SB), R13						\
@@ -60,6 +60,10 @@ restore:
 										\
 	WORD	$0xe10f0000			/* mrs r0, CPSR */		\
 	MOVW	R0, ExecCtx_CPSR(R13)						\
+										\
+	/* disable NS bit in SCR */						\
+	MOVW	$0, R0								\
+	MCR	15, 0, R0, C1, C1, 0						\
 										\
 	/* switch to System Mode */						\
 	WORD	$0xf102001f			/* cps 0x1f */			\
@@ -73,4 +77,4 @@ restore:
 	MOVW	R14, R15							\
 
 TEXT ·monitor(SB),NOSPLIT|NOFRAME,$0
-	USER_EXCEPTION()
+	MONITOR_EXCEPTION()

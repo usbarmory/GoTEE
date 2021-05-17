@@ -13,6 +13,8 @@ import (
 	"runtime"
 	_ "unsafe"
 
+	"github.com/f-secure-foundry/GoTEE/syscall"
+
 	_ "github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
@@ -38,5 +40,10 @@ func init() {
 
 func main() {
 	log.Printf("PL1 %s/%s (%s) • system/supervisor (NonSecure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
+
+	// yield back to secure monitor
+	syscall.Monitor()
+
+	// this should be unreachable
 	log.Printf("PL1 says goodbye (NS)")
 }
