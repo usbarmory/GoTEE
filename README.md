@@ -27,6 +27,15 @@ compatible applets.
 
 ![diagram](https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg)
 
+Documentation
+=============
+
+The main documentation can be found on the
+[project wiki](https://github.com/f-secure-foundry/GoTEE/wiki).
+
+The package API documentation can be found on
+[pkg.go.dev](https://pkg.go.dev/github.com/f-secure-foundry/GoTEE).
+
 Operation
 =========
 
