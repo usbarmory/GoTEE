@@ -30,7 +30,7 @@ type Stream struct {
 // Read reads up to len(p) bytes into p, it never returns an error. The read is
 // requested, through the Stream ReadSyscall, to the supervisor.
 func (s *Stream) Read(p []byte) (int, error) {
-	// Go net/rcp client constantly polls for responses, even when no
+	// Go net/rpc client constantly polls for responses, even when no
 	// outstanding requests are present (see *Client.input() in
 	// net/rpc/client.go)
 	//
