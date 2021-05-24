@@ -10,9 +10,8 @@ import (
 	"log"
 	"os"
 	"runtime"
-	"sync/atomic"
 	"time"
-	"unsafe"
+	_ "unsafe"
 
 	"github.com/f-secure-foundry/GoTEE/applet"
 	"github.com/f-secure-foundry/GoTEE/syscall"
@@ -50,22 +49,6 @@ func testRPC() {
 	} else {
 		log.Printf("PL0 received echo via RPC: %s", res)
 	}
-}
-
-func testInvalidAccess() {
-	pl1TextStart := KernelStart + uint32(0x10000)
-	mem := (*uint32)(unsafe.Pointer(uintptr(pl1TextStart)))
-
-	log.Printf("PL0 is about to read PL1 memory at %#x", pl1TextStart)
-	val := atomic.LoadUint32(mem)
-
-	res := "success (shouldn't happen)"
-
-	if val != 0xe59a1008 {
-		res = "fail (expected, but you should never see this)"
-	}
-
-	log.Printf("PL0 read PL1 memory %#x: %#x (%s)", pl1TextStart, val, res)
 }
 
 func testAbort() {

@@ -41,7 +41,11 @@ func init() {
 func main() {
 	log.Printf("PL1 %s/%s (%s) • system/supervisor (Normal World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
+	// test memory protection (FIXME: configure CSU)
+	// testInvalidAccess()
+
 	// yield back to secure monitor
+	log.Printf("PL1 in Normal World is about to yield back")
 	syscall.Monitor()
 
 	// this should be unreachable

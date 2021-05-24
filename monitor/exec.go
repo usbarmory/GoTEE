@@ -17,13 +17,12 @@ import (
 	"log"
 	"net/rpc"
 	"runtime"
+	"sync"
 
 	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
-
-const userModeFlags = arm.TTE_AP_011 | arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION_1MB
 
 const (
 	UserMode   = (0b111 << 6) | arm.USR_MODE
@@ -41,6 +40,8 @@ var monitorVectorTable = arm.VectorTable{
 	IRQ:           monitor,
 	FIQ:           monitor,
 }
+
+var mux sync.Mutex
 
 // defined in exec.s
 func monitor()
@@ -107,6 +108,9 @@ func (ctx *ExecCtx) Print() {
 }
 
 func (ctx *ExecCtx) schedule() (err error) {
+	mux.Lock()
+	defer mux.Unlock()
+
 	// set monitor handlers
 	arm.SetVectorTable(monitorVectorTable)
 
@@ -158,10 +162,10 @@ func (ctx *ExecCtx) Run() (err error) {
 }
 
 // Load returns an execution context initialized for the argument ELF
-// executable.
-func Load(elf []byte, start uint32, size int) (ctx *ExecCtx, err error) {
-	imx6.ARM.ConfigureMMU(start, start+uint32(size), userModeFlags)
-
+// executable, the secure flag controls whether the context belongs to a secure
+// partition (e.g. TrustZone Secure World) or not (e.g. TrustZone Normal
+// World).
+func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err error) {
 	mem := &dma.Region{
 		Start: start,
 		Size:  size,
@@ -178,11 +182,25 @@ func Load(elf []byte, start uint32, size int) (ctx *ExecCtx, err error) {
 
 	ctx = &ExecCtx{
 		R15:     entry,
-		SPSR:    UserMode,
-		Memory:  mem,
 		Handler: Handler,
+		Memory: mem,
 		Server:  rpc.NewServer(),
 	}
+
+	memAttrs := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
+
+	if secure {
+		memAttrs |= arm.TTE_AP_011 << 10
+		ctx.SPSR = UserMode
+	} else {
+		// The NS bit is required to ensure that cache lines are kept
+		// separate.
+		memAttrs |= arm.TTE_NS
+		ctx.NonSecure = true
+		ctx.SPSR = SystemMode
+	}
+
+	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttrs)
 
 	return
 }

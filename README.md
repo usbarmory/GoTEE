@@ -96,7 +96,7 @@ Native hardware
 ---------------
 
 The PoC can be executed on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
-by loading the compilation output `os.imx` [SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
+by loading the compilation output `os_secure.imx` [SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
 (note that for now the PoC only provides serial console feedback).
 
 Emulated hardware
@@ -114,6 +114,7 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
 00:00:00 PL1 starting mode:SYS ns:true  sp:0x00000000 pc:0x8406c6c4
 00:00:00 PL1 tamago/arm (go1.16.4) • system/supervisor (Normal World)
+00:00:00 PL1 in Normal World is about to yield back
 00:00:00        r0:00000000   r1:848220c0   r2:00000001   r3:00000000
 00:00:00        r1:848220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:00        r5:00000000   r6:00000000   r7:00000000   r8:00000007

@@ -7,8 +7,8 @@
 #include "go_asm.h"
 #include "textflag.h"
 
-DATA	·execCtx+0(SB)/4,$0
-GLOBL	·execCtx+0(SB),RODATA,$4
+DATA	·lastCtx+0(SB)/4,$0
+GLOBL	·lastCtx+0(SB),RODATA,$4
 
 // func Exec(ctx *ExecCtx)
 TEXT ·Exec(SB),$0-4
@@ -18,7 +18,7 @@ TEXT ·Exec(SB),$0-4
 	// get argument pointer
 	ADD	$(14*4), R13, R13
 	MOVW	ctx+0(FP), R0
-	MOVW	R0, ·execCtx(SB)
+	MOVW	R0, ·lastCtx(SB)
 	SUB	$(14*4), R13, R13
 
 	// save g stack pointer
@@ -51,7 +51,7 @@ restore:
 #define MONITOR_EXCEPTION()							\
 	/* save caller registers */						\
 										\
-	MOVW	·execCtx(SB), R13						\
+	MOVW	·lastCtx(SB), R13						\
 	WORD	$0xe8cd7fff			/* stmia r13, {r0-r14}^ */	\
 	MOVW	R14, ExecCtx_R15(R13)						\
 										\
@@ -69,7 +69,7 @@ restore:
 	WORD	$0xf102001f			/* cps 0x1f */			\
 										\
 	/* restore g registers */						\
-	MOVW		·execCtx(SB), R13					\
+	MOVW		·lastCtx(SB), R13					\
 	MOVW		ExecCtx_g_sp(R13), R13					\
 	MOVM.IA.W	(R13), [R0-R12, R14]	/* pop {r0-rN, r14} */		\
 										\

@@ -21,6 +21,7 @@ import (
 	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
+	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
 )
 
 //go:linkname ramStart runtime.ramStart
@@ -47,7 +48,8 @@ func init() {
 		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v", err))
 	}
 
-	usbarmory.LED("blue", true)
+	usbarmory.LED("white", false)
+	usbarmory.LED("blue", false)
 
 	debugConsole, _ := usbarmory.DetectDebugAccessory(250 * time.Millisecond)
 	<-debugConsole
@@ -65,15 +67,12 @@ func run(ctx *monitor.ExecCtx, wg *sync.WaitGroup) {
 	log.Printf("PL1 stopped mode:%s ns:%v sp:%#.8x lr:%#.8x pc:%#.8x err:%v", mode, ns, ctx.R13, ctx.R14, ctx.R15, err)
 }
 
-func main() {
-	var wg sync.WaitGroup
-	var ta *monitor.ExecCtx
-	var os *monitor.ExecCtx
+func loadApplet() (ta *monitor.ExecCtx) {
 	var err error
 
 	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
-	if ta, err = monitor.Load(taELF, AppletStart, AppletSize); err != nil {
+	if ta, err = monitor.Load(taELF, AppletStart, AppletSize, true); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
 	} else {
 		log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", ta.Memory.Start, len(taELF), ta.R15)
@@ -83,21 +82,37 @@ func main() {
 	ta.Server.Register(&Receiver{})
 	ta.Debug = true
 
-	if os, err = monitor.Load(osELF, NonSecureStart, NonSecureSize); err != nil {
+	return
+}
+
+func loadNormalWorld() (os *monitor.ExecCtx) {
+	var err error
+
+	if os, err = monitor.Load(osELF, NonSecureStart, NonSecureSize, false); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
 	} else {
 		log.Printf("PL1 loaded kernel addr:%#x size:%d entry:%#x", os.Memory.Start, len(osELF), os.R15)
 	}
 
-	// TODO: there is no lockdown of Secure hardware peripherals or Secure
-	// memory for now.
-
-	os.NonSecure = true
-	os.SPSR = monitor.SystemMode
 	os.Debug = true
 
-	// grant access to CP10 and CP11
+	// grant NonSecure access to CP10 and CP11
 	monitor.NonSecureAccess(1<<11 | 1<<10)
+
+	// grant NonSecure access to all peripherals (TODO: restriction example)
+	for i := 0; i < 39; i++ {
+		csu.SetSecurityLevel(i, csu.SEC_LEVEL_0, csu.SEC_LEVEL_0)
+		csu.LockSecurityLevel(i)
+	}
+
+	return
+}
+
+func main() {
+	var wg sync.WaitGroup
+
+	ta := loadApplet()
+	os := loadNormalWorld()
 
 	// test concurrent execution of:
 	//   Secure    World PL0 (supervisor mode) - secure OS (this program)

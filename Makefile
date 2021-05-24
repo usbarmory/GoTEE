@@ -21,7 +21,7 @@ GOENV := GO_EXTLINK_ENABLED=0 CGO_ENABLED=0 GOOS=tamago GOARM=7 GOARCH=arm
 GOFLAGS = -ldflags "-T $(TEXT_START) -E _rt0_arm_tamago -R 0x1000 -X 'main.Build=${BUILD}' -X 'main.Revision=${REV}'"
 QEMU ?= qemu-system-arm -machine mcimx6ul-evk -cpu cortex-a7 -m 512M \
         -nographic -monitor none -serial null -serial stdio -net none \
-        -semihosting -d unimp
+        -semihosting
 
 .PHONY: clean qemu qemu-gdb
 
