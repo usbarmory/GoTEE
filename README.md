@@ -5,8 +5,8 @@ Introduction
 
 This project demonstrates concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
-privileged and unprivileged modes, interacting with each other through
-monitor/supervisor mode and custom system calls
+privileged and unprivileged modes, interacting with each other through monitor
+mode and custom system calls
 
 GoTEE aims to implement a [TamaGo](https://github.com/f-secure-foundry/tamago)
 based Trusted Execution Environments (TEE), bringing Go memory safety,
@@ -107,7 +107,7 @@ An emulated run under QEMU can be executed as follows:
 ```
 make example_ta && make example_ns && make example_os && make qemu
 ...
-00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/supervisor (Secure World)
+00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/monitor (Secure World)
 00:00:00 PL1 loaded applet addr:0x82000000 size:3897006 entry:0x8206dab8
 00:00:00 PL1 loaded kernel addr:0x84000000 size:3785829 entry:0x8406c6c4
 00:00:00 PL1 will sleep until applet and kernel are done

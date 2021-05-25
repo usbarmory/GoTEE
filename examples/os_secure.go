@@ -20,8 +20,10 @@ import (
 
 	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
+	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
+	"github.com/f-secure-foundry/tamago/soc/imx6/tzasc"
 )
 
 //go:linkname ramStart runtime.ramStart
@@ -70,7 +72,7 @@ func run(ctx *monitor.ExecCtx, wg *sync.WaitGroup) {
 func loadApplet() (ta *monitor.ExecCtx) {
 	var err error
 
-	log.Printf("PL1 %s/%s (%s) • TEE system/supervisor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
+	log.Printf("PL1 %s/%s (%s) • TEE system/monitor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	if ta, err = monitor.Load(taELF, AppletStart, AppletSize, true); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
@@ -99,10 +101,31 @@ func loadNormalWorld() (os *monitor.ExecCtx) {
 	// grant NonSecure access to CP10 and CP11
 	monitor.NonSecureAccess(1<<11 | 1<<10)
 
+	if !imx6.Native {
+		return
+	}
+
+	csu.Init()
+
 	// grant NonSecure access to all peripherals (TODO: restriction example)
 	for i := 0; i < 39; i++ {
-		csu.SetSecurityLevel(i, csu.SEC_LEVEL_0, csu.SEC_LEVEL_0)
-		csu.LockSecurityLevel(i)
+		if err = csu.SetSecurityLevel(i, csu.SEC_LEVEL_0, csu.SEC_LEVEL_0); err != nil {
+			log.Fatalf("PL1 could not configure CSL%d, %v", i, err)
+		}
+
+		if err = csu.LockSecurityLevel(i); err != nil {
+			log.Fatalf("PL1 could not lock CSL%d, %v", i, err)
+		}
+	}
+
+	// move DMA region to avoid conflicts with NonSecure world
+	dma.Init(dmaStart, dmaSize)
+
+	// Normal World memory TZASC security permissions
+	sp := (1 << tzasc.SP_NW_RD) | (1 << tzasc.SP_NW_WR)
+
+	if err = tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, sp); err != nil {
+		log.Fatalf("PL1 could not configure TZASC, %v", err)
 	}
 
 	return
@@ -115,9 +138,9 @@ func main() {
 	os := loadNormalWorld()
 
 	// test concurrent execution of:
-	//   Secure    World PL0 (supervisor mode) - secure OS (this program)
-	//   Secure    World PL1 (user mode)       - trusted applet
-	//   NonSecure World PL0 (supervisor mode) - main OS
+	//   Secure    World PL0 (system/monitor mode) - secure OS (this program)
+	//   Secure    World PL1 (user mode)           - trusted applet
+	//   NonSecure World PL0                       - main OS
 	wg.Add(2)
 	go run(ta, &wg)
 	go run(os, &wg)

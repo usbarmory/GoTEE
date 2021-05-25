@@ -8,8 +8,7 @@
 // unikernels written using the TamaGo framework.
 //
 // The package supports trusted applet execution under a GoTEE compatible
-// supervisor, linking essential runtime functions with required system calls
-// to the supervisor.
+// supervisor, linking essential runtime functions with required system calls.
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
 // supported by the TamaGo framework for bare metal Go on ARM SoCs, see

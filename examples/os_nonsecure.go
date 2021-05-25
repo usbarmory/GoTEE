@@ -41,8 +41,10 @@ func init() {
 func main() {
 	log.Printf("PL1 %s/%s (%s) • system/supervisor (Normal World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
-	// test memory protection (FIXME: configure CSU)
-	// testInvalidAccess()
+	if imx6.Native {
+		// test memory protection
+		testInvalidAccess()
+	}
 
 	// yield back to secure monitor
 	log.Printf("PL1 in Normal World is about to yield back")

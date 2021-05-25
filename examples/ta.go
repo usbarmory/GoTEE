@@ -69,7 +69,7 @@ func main() {
 
 	log.Printf("PL0 will sleep for 5 seconds")
 
-	// test concurrent execution of PL1 applet and PL0 supervisor
+	// test concurrent execution of PL0 applet and PL1 supervisor
 	for i := 0; i < 5; i++ {
 		time.Sleep(1 * time.Second)
 		log.Printf("PL0 says %d missisipi", i+1)

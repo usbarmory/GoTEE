@@ -28,23 +28,23 @@ TEXT ·Exec(SB),$0-4
 	MOVW	ExecCtx_R13(R0), R13
 	MOVW	ExecCtx_R14(R0), R14
 
-	// switch to supervisor mode
-	WORD	$0xf1020013			// cps 0x13
+	// switch to monitor mode
+	WORD	$0xf1020016			// cps 0x16
+
+	// restore mode
+	MOVW	ExecCtx_SPSR(R0), R1
+	WORD	$0xe169f001			// msr SPSR, r1
 
 	MOVW	ExecCtx_NonSecure(R0), R1
 	AND	$1, R1, R1
 	CMP	$1, R1
-	BNE	restore
+	BNE	switch
 
 	// enable EA, FIQ, and NS bit in SCR
 	MOVW	$13, R1
 	MCR	15, 0, R1, C1, C1, 0
 
-restore:
-	// restore mode
-	MOVW	ExecCtx_SPSR(R0), R1
-	WORD	$0xe169f001			// msr SPSR, r1
-
+switch:
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 

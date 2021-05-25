@@ -183,24 +183,24 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	ctx = &ExecCtx{
 		R15:     entry,
 		Handler: Handler,
-		Memory: mem,
+		Memory:  mem,
 		Server:  rpc.NewServer(),
 	}
 
-	memAttrs := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
+	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
 	if secure {
-		memAttrs |= arm.TTE_AP_011 << 10
+		memAttr |= arm.TTE_AP_011 << 10
 		ctx.SPSR = UserMode
 	} else {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
-		memAttrs |= arm.TTE_NS
+		memAttr |= arm.TTE_NS
 		ctx.NonSecure = true
 		ctx.SPSR = SystemMode
 	}
 
-	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttrs)
+	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
 
 	return
 }
