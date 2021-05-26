@@ -85,11 +85,11 @@ type ExecCtx struct {
 	// Server, if not nil, serves RPC calls over syscalls
 	Server *rpc.Server
 
-	// TrustZone configuration
-	NonSecure bool
-
 	// Debug controls activation of debug logs
 	Debug bool
+
+	// TrustZone configuration
+	ns bool
 
 	// executing g stack pointer
 	g_sp uint32
@@ -105,6 +105,16 @@ func (ctx *ExecCtx) Print() {
 	log.Printf("\tr5:%.8x   r6:%.8x   r7:%.8x   r8:%.8x", ctx.R5, ctx.R6, ctx.R7, ctx.R8)
 	log.Printf("\tr9:%.8x  r10:%.8x  r11:%.8x  r12:%.8x", ctx.R9, ctx.R10, ctx.R11, ctx.R12)
 	log.Printf("\tsp:%.8x   lr:%.8x   pc:%.8x spsr:%.8x", ctx.R13, ctx.R14, ctx.R15, ctx.SPSR)
+}
+
+// NonSecure returns whether the execution context is loaded as non-secure.
+func (ctx *ExecCtx) NonSecure() bool {
+	return ctx.ns
+}
+
+// Mode returns the processor mode.
+func (ctx *ExecCtx) ExceptionMode() int {
+	return int(ctx.CPSR & 0x1f)
 }
 
 func (ctx *ExecCtx) schedule() (err error) {
@@ -129,11 +139,6 @@ func (ctx *ExecCtx) schedule() (err error) {
 	}
 
 	return
-}
-
-// Mode returns the processor mode.
-func (ctx *ExecCtx) ExceptionMode() int {
-	return int(ctx.CPSR & 0x1f)
 }
 
 // Run starts the execution context and handles user mode system calls. The
@@ -185,19 +190,19 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		Handler: Handler,
 		Memory:  mem,
 		Server:  rpc.NewServer(),
+		ns: !secure,
 	}
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
-	if secure {
-		memAttr |= arm.TTE_AP_011 << 10
-		ctx.SPSR = UserMode
-	} else {
+	if ctx.ns {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
 		memAttr |= arm.TTE_AP_001 << 10 | arm.TTE_NS
-		ctx.NonSecure = true
 		ctx.SPSR = SystemMode
+	} else {
+		memAttr |= arm.TTE_AP_011 << 10
+		ctx.SPSR = UserMode
 	}
 
 	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)

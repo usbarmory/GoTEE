@@ -35,7 +35,7 @@ TEXT ·Exec(SB),$0-4
 	MOVW	ExecCtx_SPSR(R0), R1
 	WORD	$0xe169f001			// msr SPSR, r1
 
-	MOVW	ExecCtx_NonSecure(R0), R1
+	MOVW	ExecCtx_ns(R0), R1
 	AND	$1, R1, R1
 	CMP	$1, R1
 	BNE	switch

@@ -59,7 +59,7 @@ func init() {
 
 func run(ctx *monitor.ExecCtx, wg *sync.WaitGroup) {
 	mode := arm.ModeName(int(ctx.SPSR) & 0x1f)
-	ns := ctx.NonSecure
+	ns := ctx.NonSecure()
 
 	log.Printf("PL1 starting mode:%s ns:%v sp:%#.8x pc:%#.8x", mode, ns, ctx.R13, ctx.R15)
 
