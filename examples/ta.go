@@ -76,7 +76,7 @@ func main() {
 	}
 
 	// test memory protection
-	testInvalidAccess()
+	testInvalidAccess("PL0")
 
 	// this should be unreachable
 

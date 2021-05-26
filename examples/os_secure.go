@@ -64,7 +64,10 @@ func run(ctx *monitor.ExecCtx, wg *sync.WaitGroup) {
 	log.Printf("PL1 starting mode:%s ns:%v sp:%#.8x pc:%#.8x", mode, ns, ctx.R13, ctx.R15)
 
 	err := ctx.Run()
-	wg.Done()
+
+	if wg != nil {
+		wg.Done()
+	}
 
 	log.Printf("PL1 stopped mode:%s ns:%v sp:%#.8x lr:%#.8x pc:%#.8x err:%v", mode, ns, ctx.R13, ctx.R14, ctx.R15, err)
 }
@@ -87,8 +90,16 @@ func loadApplet() (ta *monitor.ExecCtx) {
 	return
 }
 
-func loadNormalWorld() (os *monitor.ExecCtx) {
+func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	var err error
+
+	if lock {
+		// Move DMA region prevent free NonSecure access, alternatively
+		// iRAM/OCRAM (default DMA region) can be locked down.
+		//
+		// This is necessary as iRAM/OCRAM is outside TZASC control.
+		dma.Init(dmaStart, dmaSize)
+	}
 
 	if os, err = monitor.Load(osELF, NonSecureStart, NonSecureSize, false); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
@@ -105,28 +116,41 @@ func loadNormalWorld() (os *monitor.ExecCtx) {
 		return
 	}
 
+	// For readability purposes this example does not check for csu/tzasc
+	// errors (which only traps invalid arguments being passed) are not
+	// checked. You, however, should.
+
 	csu.Init()
 
-	// grant NonSecure access to all peripherals (TODO: restriction example)
+	// grant NonSecure access to all peripherals
 	for i := 0; i < 39; i++ {
-		if err = csu.SetSecurityLevel(i, csu.SEC_LEVEL_0, csu.SEC_LEVEL_0); err != nil {
-			log.Fatalf("PL1 could not configure CSL%d, %v", i, err)
-		}
-
-		if err = csu.LockSecurityLevel(i); err != nil {
-			log.Fatalf("PL1 could not lock CSL%d, %v", i, err)
-		}
+		csu.SetSecurityLevel(i, 0, csu.SEC_LEVEL_0, false)
+		csu.SetSecurityLevel(i, 1, csu.SEC_LEVEL_0, false)
 	}
 
-	// move DMA region to avoid conflicts with NonSecure world
-	dma.Init(dmaStart, dmaSize)
-
-	// Normal World memory TZASC security permissions
-	sp := (1 << tzasc.SP_NW_RD) | (1 << tzasc.SP_NW_WR)
-
-	if err = tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, sp); err != nil {
-		log.Fatalf("PL1 could not configure TZASC, %v", err)
+	// set all bus masters to NonSecure
+	for i := 0; i < 16; i++ {
+		csu.SetMasterPrivilege(i, true, false)
 	}
+
+	// TZASC NonSecure World R/W access
+	tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, (1 << tzasc.SP_NW_RD) | (1 << tzasc.SP_NW_WR))
+
+	if !lock {
+		return
+	}
+
+	// restrict ROMCP
+	csu.SetSecurityLevel(13, 0, csu.SEC_LEVEL_4, true)
+
+	// restrict TZASC
+	csu.SetSecurityLevel(16, 1, csu.SEC_LEVEL_4, true)
+
+	// restrict DCP
+	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, true)
+
+	// set Cortex-A7 bus master to Secure
+	csu.SetMasterPrivilege(0, true, true)
 
 	return
 }
@@ -135,7 +159,7 @@ func main() {
 	var wg sync.WaitGroup
 
 	ta := loadApplet()
-	os := loadNormalWorld()
+	os := loadNormalWorld(false)
 
 	// test concurrent execution of:
 	//   Secure    World PL0 (system/monitor mode) - secure OS (this program)
@@ -154,6 +178,14 @@ func main() {
 		}
 	}()
 	wg.Wait()
+
+	if imx6.Native {
+		// re-launch NonSecure World with peripheral restrictions
+		os := loadNormalWorld(true)
+
+		log.Printf("PL1 re-launching kernel with TrustZone restrictions")
+		run(os, nil)
+	}
 
 	log.Printf("PL1 says goodbye")
 }

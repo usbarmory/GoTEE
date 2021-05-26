@@ -195,7 +195,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	} else {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
-		memAttr |= arm.TTE_NS
+		memAttr |= arm.TTE_AP_001 << 10 | arm.TTE_NS
 		ctx.NonSecure = true
 		ctx.SPSR = SystemMode
 	}

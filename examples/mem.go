@@ -28,11 +28,11 @@ const (
 	NonSecureSize  = 0x02000000
 )
 
-func testInvalidAccess() {
+func testInvalidAccess(tag string) {
 	pl1TextStart := KernelStart + uint32(0x10000)
 	mem := (*uint32)(unsafe.Pointer(uintptr(pl1TextStart)))
 
-	log.Printf("PL0 is about to read PL1 memory at %#x", pl1TextStart)
+	log.Printf("%s is about to read PL1 memory at %#x", tag, pl1TextStart)
 	val := atomic.LoadUint32(mem)
 
 	res := "success - FIXME: shouldn't happen"
@@ -41,5 +41,5 @@ func testInvalidAccess() {
 		res = "fail (expected, but you should never see this)"
 	}
 
-	log.Printf("PL0 read PL1 memory %#x: %#x (%s)", pl1TextStart, val, res)
+	log.Printf("%s read PL1 memory %#x: %#x (%s)", tag, pl1TextStart, val, res)
 }

@@ -17,6 +17,7 @@ import (
 
 	_ "github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
+	"github.com/f-secure-foundry/tamago/soc/imx6/dcp"
 )
 
 //go:linkname ramStart runtime.ramStart
@@ -42,8 +43,18 @@ func main() {
 	log.Printf("PL1 %s/%s (%s) • system/supervisor (Normal World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	if imx6.Native {
-		// test memory protection
-		testInvalidAccess()
+		log.Printf("PL1 in Normal World is about to perform DCP key derivation")
+
+		dcp.Init()
+
+		// this fails after restrictions are in place (see os_secure.go)
+		if k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1); err == nil {
+			log.Printf("PL1 in Normal World successfully used DCP (%x)", k)
+		}
+
+		// Uncomment to test memory protection, this will hang Normal World and
+		// therefore everything.
+		// testInvalidAccess("PL1 in Normal World")
 	}
 
 	// yield back to secure monitor
