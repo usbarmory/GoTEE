@@ -1,24 +1,15 @@
 Introduction
 ============
 
-> :warning: this project is at PoC stage
-
-This project demonstrates concurrent instantiation of
+The GoTEE frameworks implements concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
 privileged and unprivileged modes, interacting with each other through monitor
 mode and custom system calls
 
-GoTEE aims to implement a [TamaGo](https://github.com/f-secure-foundry/tamago)
+With these capabilities GoTEE implements a [TamaGo](https://github.com/f-secure-foundry/tamago)
 based Trusted Execution Environments (TEE), bringing Go memory safety,
 convenience and capabilities to bare metal execution within TrustZone Secure
 World or equivalent isolation technology.
-
-In TEE nomenclature, the privileged unikernel is commonly referred to as
-trusted OS, while the unprivileged one represents a trusted applet (TA).
-
-While the repository examples implement a Go unikernel for both the trusted OS
-and TA either can be replaced with any bare metal code (e.g.  C, Rust)
-implementing the syscall API.
 
 A compatibility layer for
 [libutee](https://optee.readthedocs.io/en/latest/architecture/libraries.html#libutee)
@@ -30,7 +21,7 @@ compatible applets.
 Documentation
 =============
 
-The main documentation can be found on the
+The main documentation, which includes a tutorial, can be found on the
 [project wiki](https://github.com/f-secure-foundry/GoTEE/wiki).
 
 The package API documentation can be found on
@@ -38,6 +29,14 @@ The package API documentation can be found on
 
 Operation
 =========
+
+In TEE nomenclature, the privileged unikernel is commonly referred to as
+trusted OS, while the unprivileged one represents a trusted applet (TA).
+
+The GoTEE [examples](https://github.com/f-secure-foundry/GoTEE/tree/master/examples)
+implement a Go unikernel for both the trusted OS and TA, the latter can be
+replaced with any bare metal code (e.g.  C, Rust) implementing GoTEE syscall
+API.
 
 The example trusted OS/applet combination performs basic testing of concurrent
 execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
@@ -53,11 +52,15 @@ unikernels at different privilege levels:
 The TA sleeps for 5 seconds before attempting to read privileged OS memory,
 which triggers an exception handled by the supervisor which terminates the TA.
 
+When launched on real hardware such as the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
+the example spawns the Main OS, two demonstrate behaviour before and after
+TrustZone restrictions are in place.
+
 A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
 interface is implemented for communication between the two privilege levels.
 
-Status
-======
+Implementation status
+=====================
 
 - [x] PL0/PL1 separation
 - [ ] PL0 virtual address space
@@ -66,7 +69,7 @@ Status
 - [ ] PL0/PL1 GoTEE crypto API
 - [x] Secure World execution
 - [x] Normal World execution
-- [ ] Normal World isolation
+- [x] Normal World isolation
 - [ ] Secure/Normal World API
 - [ ] TEE Client API
 
@@ -141,6 +144,9 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:05 PL1 says goodbye
 ```
 
+> :warning: the emulated run performs partial tests due to lack of full
+> TrustZone support by QEMU
+
 Debugging
 =========
 
@@ -159,6 +165,9 @@ Authors
 
 Andrea Barisani  
 andrea.barisani@f-secure.com | andrea@inversepath.com  
+
+Andrej Rosano  
+andrej.rosano@f-secure.com | andrej@inversepath.com  
 
 License
 =======
