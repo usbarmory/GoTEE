@@ -1,4 +1,4 @@
-github.com/f-secure-foundry/tamago v0.0.0-20210527125518-efb6a29a906d h1:wivbY1Zy3a7P5vubEQ07EL+NohzaAlZ+Z96IFYtwjOo=
-github.com/f-secure-foundry/tamago v0.0.0-20210527125518-efb6a29a906d/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
+github.com/f-secure-foundry/tamago v0.0.0-20210527145307-3a04f2a2761c h1:k5+mjpmQfnZBeDS3OzxTbyfXHN8cB5+d49qkiDUXtMg=
+github.com/f-secure-foundry/tamago v0.0.0-20210527145307-3a04f2a2761c/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c h1:5KslGYwFpkhGh+Q16bwMP3cOontH8FOep7tGV86Y7SQ=
 golang.org/x/sync v0.0.0-20210220032951-036812b2e83c/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
