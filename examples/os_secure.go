@@ -23,6 +23,7 @@ import (
 	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
+	"github.com/f-secure-foundry/tamago/soc/imx6/dcp"
 	"github.com/f-secure-foundry/tamago/soc/imx6/tzasc"
 )
 
@@ -123,15 +124,18 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	csu.Init()
 
 	// grant NonSecure access to all peripherals
-	for i := 0; i < 39; i++ {
+	for i := csu.CSL_MIN; i < csu.CSL_MAX; i++ {
 		csu.SetSecurityLevel(i, 0, csu.SEC_LEVEL_0, false)
 		csu.SetSecurityLevel(i, 1, csu.SEC_LEVEL_0, false)
 	}
 
 	// set all bus masters to NonSecure
-	for i := 0; i < 16; i++ {
-		csu.SetMasterPrivilege(i, true, false)
+	for i := csu.SA_MIN; i < csu.SA_MAX; i++ {
+		csu.SetAccess(i, false, false)
 	}
+
+	// set Cortex-A7 bus master to Secure
+	csu.SetAccess(0, true, true)
 
 	// TZASC NonSecure World R/W access
 	tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, (1 << tzasc.SP_NW_RD) | (1 << tzasc.SP_NW_WR))
@@ -148,9 +152,7 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 
 	// restrict DCP
 	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, true)
-
-	// set Cortex-A7 bus master to Secure
-	csu.SetMasterPrivilege(0, true, true)
+	csu.SetAccess(14, true, true)
 
 	return
 }
@@ -185,6 +187,13 @@ func main() {
 
 		log.Printf("PL1 re-launching kernel with TrustZone restrictions")
 		run(os, nil)
+
+		// test restricted peripheral in Secure World
+		log.Printf("PL1 in Secure World is about to perform DCP key derivation")
+
+		if k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1); err == nil {
+			log.Printf("PL1 in Secure World World successfully used DCP (%x)", k)
+		}
 	}
 
 	log.Printf("PL1 says goodbye")
