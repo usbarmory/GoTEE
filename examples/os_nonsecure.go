@@ -48,8 +48,12 @@ func main() {
 		dcp.Init()
 
 		// this fails after restrictions are in place (see os_secure.go)
-		if k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1); err == nil {
+		k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1)
+
+		if err != nil {
 			log.Printf("PL1 in Normal World successfully used DCP (%x)", k)
+		} else {
+			log.Printf("PL1 in Normal World World failed to use DCP (%v)", err)
 		}
 
 		// Uncomment to test memory protection, this will hang Normal World and

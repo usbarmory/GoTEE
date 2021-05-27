@@ -129,30 +129,30 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 		csu.SetSecurityLevel(i, 1, csu.SEC_LEVEL_0, false)
 	}
 
-	// set all bus masters to NonSecure
-	for i := csu.SA_MIN; i < csu.SA_MAX; i++ {
-		csu.SetAccess(i, false, false)
-	}
-
-	// set Cortex-A7 bus master to Secure
-	csu.SetAccess(0, true, true)
-
 	// TZASC NonSecure World R/W access
-	tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, (1 << tzasc.SP_NW_RD) | (1 << tzasc.SP_NW_WR))
+	tzasc.EnableRegion(1, NonSecureStart, NonSecureSize, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR))
 
 	if !lock {
 		return
 	}
 
+	// set all masters to NonSecure
+	for i := csu.SA_MIN; i < csu.SA_MAX; i++ {
+		csu.SetAccess(i, false, false)
+	}
+
+	// set Cortex-A7 master as Secure
+	csu.SetAccess(0, true, false)
+
 	// restrict ROMCP
-	csu.SetSecurityLevel(13, 0, csu.SEC_LEVEL_4, true)
+	csu.SetSecurityLevel(13, 0, csu.SEC_LEVEL_4, false)
 
 	// restrict TZASC
-	csu.SetSecurityLevel(16, 1, csu.SEC_LEVEL_4, true)
+	csu.SetSecurityLevel(16, 1, csu.SEC_LEVEL_4, false)
 
 	// restrict DCP
-	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, true)
-	csu.SetAccess(14, true, true)
+	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, false)
+	csu.SetAccess(14, true, false)
 
 	return
 }
@@ -191,7 +191,11 @@ func main() {
 		// test restricted peripheral in Secure World
 		log.Printf("PL1 in Secure World is about to perform DCP key derivation")
 
-		if k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1); err == nil {
+		k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1)
+
+		if err != nil {
+			log.Printf("PL1 in Secure World World failed to use DCP (%v)", err)
+		} else {
 			log.Printf("PL1 in Secure World World successfully used DCP (%x)", k)
 		}
 	}
