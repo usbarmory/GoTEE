@@ -1,7 +1,7 @@
 Introduction
 ============
 
-The GoTEE frameworks implements concurrent instantiation of
+The GoTEE framework implements concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
 privileged and unprivileged modes, interacting with each other through monitor
 mode and custom system calls
@@ -16,7 +16,7 @@ A compatibility layer for
 is planned, allowing execution of/as [OP-TEE](https://www.op-tee.org/)
 compatible applets.
 
-![diagram](https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg)
+<img src="https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg" width="350">
 
 Documentation
 =============
@@ -37,38 +37,6 @@ The following table summarizes currently supported SoCs and boards.
 | NXP i.MX6ULZ  | [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)                                                                                                               | [imx6](https://github.com/f-secure-foundry/tamago/tree/master/soc/imx6)       | [usbarmory/mark-two](https://github.com/f-secure-foundry/tamago/tree/master/board/f-secure/usbarmory)  |
 | NXP i.MX6ULL  | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6](https://github.com/f-secure-foundry/tamago/tree/master/soc/imx6)       | [mx6ullevk](https://github.com/f-secure-foundry/tamago/tree/master/board/nxp/mx6ullevk)                |
 
-Operation
-=========
-
-In TEE nomenclature, the privileged unikernel is commonly referred to as
-trusted OS, while the unprivileged one represents a trusted applet (TA).
-
-The GoTEE [examples](https://github.com/f-secure-foundry/GoTEE/tree/master/examples)
-implement a Go unikernel for both the trusted OS and TA, the latter can be
-replaced with any bare metal code (e.g.  C, Rust) implementing GoTEE syscall
-API.
-
-The example trusted OS/applet combination performs basic testing of concurrent
-execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
-unikernels at different privilege levels:
-
- * Trusted OS, running in Secure World at privileged level (PL1, system mode)
- * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
- * Main OS, running in Normal World at privileged level (PL1, system mode)
-
-> :warning: the main OS can be anything (e.g. Linux), TamaGo is simply used for
-> a self-contained example.
-
-The TA sleeps for 5 seconds before attempting to read privileged OS memory,
-which triggers an exception handled by the supervisor which terminates the TA.
-
-When launched on real hardware such as the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
-the example spawns the Main OS, two demonstrate behaviour before and after
-TrustZone restrictions are in place.
-
-A basic [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
-interface is implemented for communication between the two privilege levels.
-
 Implementation status
 =====================
 
@@ -82,6 +50,42 @@ Implementation status
 - [x] Normal World isolation
 - [ ] Secure/Normal World API
 - [ ] TEE Client API
+
+Example application
+===================
+
+In TEE nomenclature, the privileged unikernel is commonly referred to as
+Trusted OS, while the unprivileged one represents a Trusted Applet.
+
+The GoTEE [examples](https://github.com/f-secure-foundry/GoTEE/tree/master/examples)
+demonstrates concurrent operation of Go unikernels acting as Trusted OS,
+Trusted Applet and Main OS.
+
+> :warning: the Main OS can be any "rich" OS (e.g. Linux), TamaGo is simply
+> used for a self-contained example. The same applies to the Trusted Applet
+> which can be any bare metal application capable of running in user mode and
+> implementing GoTEE API, such as freestanding C or Rust programs.
+
+The example trusted OS/applet combination performs basic testing of concurrent
+execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
+unikernels at different privilege levels:
+
+ * Trusted OS, running in Secure World at privileged level (PL1, system mode)
+ * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
+ * Main OS, running in Normal World at privileged level (PL1, system mode)
+
+The Main OS yields back with a monitor call.
+
+The Trusted Applet sleeps for 5 seconds before attempting to read privileged OS
+memory, which triggers an exception handled by the supervisor which terminates
+the Trusted Applet.
+
+When launched on real hardware such as the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
+the example spawns the Main OS twice, to demonstrate behaviour before and after
+TrustZone restrictions are in effect in using hardware peripherals.
+
+The GoTEE [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
+interface is implemented for communication between the Trusted OS and Trusted Applet.
 
 Compiling
 =========
