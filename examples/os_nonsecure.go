@@ -51,9 +51,9 @@ func main() {
 		k, err := dcp.DeriveKey(make([]byte, 8), make([]byte, 16), -1)
 
 		if err != nil {
-			log.Printf("PL1 in Normal World successfully used DCP (%x)", k)
-		} else {
 			log.Printf("PL1 in Normal World World failed to use DCP (%v)", err)
+		} else {
+			log.Printf("PL1 in Normal World successfully used DCP (%x)", k)
 		}
 
 		// Uncomment to test memory protection, this will hang Normal World and
