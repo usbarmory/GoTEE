@@ -31,6 +31,10 @@ example_os: APP=os_secure
 example_os: TEXT_START=0x80010000
 example_os: imx
 
+example_os_signed: APP=os_secure
+example_os_signed: TEXT_START=0x80010000
+example_os_signed: imx_signed
+
 example_ta: APP=ta
 example_ta: TEXT_START=0x82010000
 example_ta: imx
@@ -77,7 +81,7 @@ qemu-gdb:
 #### dependencies ####
 
 $(APP): check_tamago
-	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go examples/mem.go examples/rpc.go
+	$(GOENV) $(TAMAGO) build -tags ${BUILD_TAGS} $(GOFLAGS) -o ${APP} examples/${APP}.go examples/mem.go examples/common.go
 
 $(APP).dcd: check_tamago
 $(APP).dcd: GOMODCACHE=$(shell ${TAMAGO} env GOMODCACHE)
