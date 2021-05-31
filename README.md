@@ -165,11 +165,11 @@ Debugging
 =========
 
 ```
-make example_ta && make example_ns && make qemu-gdb
+make example_ta && make example_ns && make example_os && make qemu-gdb
 ```
 
 ```
-arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" os
+arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" os_secure
 >>> add-symbol-file examples/ta
 >>> b ta.go:main.main
 ```
