@@ -100,11 +100,10 @@ type ExecCtx struct {
 
 // Print logs the execution context state.
 func (ctx *ExecCtx) Print() {
-	log.Printf("\tr0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
-	log.Printf("\tr1:%.8x   r2:%.8x   r3:%.8x   r4:%.8x", ctx.R1, ctx.R2, ctx.R3, ctx.R4)
-	log.Printf("\tr5:%.8x   r6:%.8x   r7:%.8x   r8:%.8x", ctx.R5, ctx.R6, ctx.R7, ctx.R8)
-	log.Printf("\tr9:%.8x  r10:%.8x  r11:%.8x  r12:%.8x", ctx.R9, ctx.R10, ctx.R11, ctx.R12)
-	log.Printf("\tsp:%.8x   lr:%.8x   pc:%.8x spsr:%.8x", ctx.R13, ctx.R14, ctx.R15, ctx.SPSR)
+	log.Printf("\t r0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
+	log.Printf("\t r4:%.8x   r5:%.8x   r6:%.8x   r7:%.8x", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
+	log.Printf("\t r8:%.8x   r9:%.8x  r10:%.8x  r11:%.8x", ctx.R8, ctx.R9, ctx.R10, ctx.R11)
+	log.Printf("\tr12:%.8x   sp:%.8x   lr:%.8x   pc:%.8x  spsr:%.8x", ctx.R12, ctx.R13, ctx.R14, ctx.R15, ctx.SPSR)
 }
 
 // NonSecure returns whether the execution context is loaded as non-secure.
