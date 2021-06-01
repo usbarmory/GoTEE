@@ -42,7 +42,7 @@ func testRPC() {
 	req := "hello"
 
 	log.Printf("PL0 requests echo via RPC: %s", req)
-	err := syscall.Call("Receiver.Echo", req, &res)
+	err := syscall.Call("RPC.Echo", req, &res)
 
 	if err != nil {
 		log.Printf("PL0 received RPC error: %v", err)
@@ -69,8 +69,16 @@ func main() {
 
 	log.Printf("PL0 will sleep for 5 seconds")
 
+	ledStatus := LEDStatus {
+		Name: "blue",
+		On:   true,
+	}
+
 	// test concurrent execution of PL0 applet and PL1 supervisor
 	for i := 0; i < 5; i++ {
+		syscall.Call("RPC.LED", ledStatus, nil)
+		ledStatus.On = !ledStatus.On
+
 		time.Sleep(1 * time.Second)
 		log.Printf("PL0 says %d missisipi", i+1)
 	}

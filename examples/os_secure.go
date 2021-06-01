@@ -8,6 +8,7 @@ package main
 
 import (
 	_ "embed"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -39,6 +40,31 @@ var taELF []byte
 //go:embed os_nonsecure
 var osELF []byte
 
+// RPC is an example receiver for user mode <--> system RPC over system calls.
+type RPC struct{}
+
+func (r *RPC) Echo(in string, out *string) error {
+	*out = in
+	return nil
+}
+
+func (r *RPC) LED(led LEDStatus, _ *string) error {
+	if !imx6.Native {
+		return errors.New("unsupported")
+	}
+
+	switch led.Name {
+	case "white", "White", "WHITE":
+		return errors.New("LED is secure only")
+	case "blue", "Blue", "BLUE":
+		return usbarmory.LED(led.Name, led.On)
+	default:
+		return errors.New("invalid LED")
+	}
+
+	return nil
+}
+
 func init() {
 	log.SetFlags(log.Ltime)
 	log.SetOutput(os.Stdout)
@@ -51,7 +77,9 @@ func init() {
 		panic(fmt.Sprintf("WARNING: error setting ARM frequency: %v", err))
 	}
 
-	usbarmory.LED("white", false)
+	// white LED is used by Trusted OS example
+	usbarmory.LED("white", true)
+	// blue LED is requested by Trusted Applet
 	usbarmory.LED("blue", false)
 
 	debugConsole, _ := usbarmory.DetectDebugAccessory(250 * time.Millisecond)
@@ -84,8 +112,8 @@ func loadApplet() (ta *monitor.ExecCtx) {
 		log.Printf("PL1 loaded applet addr:%#x size:%d entry:%#x", ta.Memory.Start, len(taELF), ta.R15)
 	}
 
-	// register receiver methods for RPC test (see rpc.go)
-	ta.Server.Register(&Receiver{})
+	// register example RPC receiver
+	ta.Server.Register(&RPC{})
 	ta.Debug = true
 
 	return
@@ -180,6 +208,8 @@ func main() {
 		}
 	}()
 	wg.Wait()
+
+	usbarmory.LED("blue", false)
 
 	if imx6.Native {
 		// re-launch NonSecure World with peripheral restrictions
