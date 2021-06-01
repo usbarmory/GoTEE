@@ -69,7 +69,7 @@ func main() {
 
 	log.Printf("PL0 will sleep for 5 seconds")
 
-	ledStatus := LEDStatus {
+	ledStatus := LEDStatus{
 		Name: "blue",
 		On:   true,
 	}
