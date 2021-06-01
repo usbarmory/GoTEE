@@ -182,6 +182,9 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, false)
 	csu.SetAccess(14, true, false)
 
+	// restrict LEDs
+	csu.SetSecurityLevel(2, 1, csu.SEC_LEVEL_4, false)
+
 	return
 }
 
