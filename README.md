@@ -148,7 +148,7 @@ make example_ta && make example_ns && make example_os && make qemu
 ...
 00:00:05 PL1 says 5 missisipi
 00:00:05 PL0 says 5 missisipi
-00:00:05 PL0 is about to read PL1 memory at 0x80010000
+00:00:05 PL0 is about to read PL1 Secure World memory at 0x80010000
 00:00:05        r0:80010000   r1:828220c0   r2:00000001   r3:00000000
 00:00:05        r1:828220c0   r2:00000001   r3:00000000   r4:00000000
 00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
