@@ -189,7 +189,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		Handler: Handler,
 		Memory:  mem,
 		Server:  rpc.NewServer(),
-		ns: !secure,
+		ns:      !secure,
 	}
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
@@ -197,7 +197,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	if ctx.ns {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
-		memAttr |= arm.TTE_AP_001 << 10 | arm.TTE_NS
+		memAttr |= arm.TTE_AP_001<<10 | arm.TTE_NS
 		ctx.SPSR = SystemMode
 	} else {
 		memAttr |= arm.TTE_AP_011 << 10
