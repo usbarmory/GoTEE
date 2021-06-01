@@ -178,12 +178,13 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	// restrict TZASC
 	csu.SetSecurityLevel(16, 1, csu.SEC_LEVEL_4, false)
 
+	// restrict LEDs (GPIO4, IOMUXC)
+	csu.SetSecurityLevel(2, 1, csu.SEC_LEVEL_4, false)
+	csu.SetSecurityLevel(6, 1, csu.SEC_LEVEL_4, false)
+
 	// restrict DCP
 	csu.SetSecurityLevel(34, 0, csu.SEC_LEVEL_4, false)
 	csu.SetAccess(14, true, false)
-
-	// restrict LEDs
-	csu.SetSecurityLevel(2, 1, csu.SEC_LEVEL_4, false)
 
 	return
 }

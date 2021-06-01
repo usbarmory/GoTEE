@@ -15,9 +15,9 @@ import (
 
 	"github.com/f-secure-foundry/GoTEE/syscall"
 
-	_ "github.com/f-secure-foundry/tamago/board/f-secure/usbarmory/mark-two"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 	"github.com/f-secure-foundry/tamago/soc/imx6/dcp"
+	_ "github.com/f-secure-foundry/tamago/soc/imx6/imx6ul"
 )
 
 //go:linkname ramStart runtime.ramStart
@@ -25,6 +25,18 @@ var ramStart uint32 = NonSecureStart
 
 //go:linkname ramSize runtime.ramSize
 var ramSize uint32 = NonSecureSize
+
+//go:linkname hwinit runtime.hwinit
+func hwinit() {
+	imx6.Init()
+	imx6.UART2.Init()
+}
+
+//go:linkname printk runtime.printk
+func printk(c byte) {
+	// Secure World is not restricting us UART access
+	imx6.UART2.Tx(c)
+}
 
 func init() {
 	log.SetFlags(log.Ltime)
