@@ -139,7 +139,7 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	os.Debug = true
 
 	// grant NonSecure access to CP10 and CP11
-	monitor.NonSecureAccess(1<<11 | 1<<10)
+	imx6.ARM.NonSecureAccessControl(1<<11 | 1<<10)
 
 	if !imx6.Native {
 		return
