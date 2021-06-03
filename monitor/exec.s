@@ -35,9 +35,8 @@ TEXT ·Exec(SB),$0-4
 	WORD	$0xe169f001			// msr SPSR, r1
 
 	MOVW	ExecCtx_ns(R0), R1
-	AND	$1, R1, R1
-	CMP	$1, R1
-	BNE	switch
+	TST	$1, R1
+	BEQ	switch
 
 	// enable EA, FIQ, and NS bit in SCR
 	MOVW	$13, R1
