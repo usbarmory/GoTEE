@@ -16,12 +16,12 @@ import (
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
-// Handler is the default handler for supervisor (SVC) exceptions raised by
-// the execution context to handle supported GoTEE system calls.
-func Handler(ctx *ExecCtx) (err error) {
+// SecureHandler is the default handler for supervisor (SVC) exceptions raised
+// by a secure execution context to handle supported GoTEE system calls.
+func SecureHandler(ctx *ExecCtx) (err error) {
 	switch num := ctx.R0; num {
 	case syscall.SYS_EXIT:
-		return fmt.Errorf("exit")
+		return errors.New("exit")
 	case syscall.SYS_WRITE:
 		imx6.UART2.Tx(byte(ctx.R1))
 	case syscall.SYS_NANOTIME:
@@ -50,4 +50,16 @@ func Handler(ctx *ExecCtx) (err error) {
 	}
 
 	return
+}
+
+// NonSecureHandler is the default handler for supervisor (SVC) exceptions raised
+// by a non-secure execution context to handle supported GoTEE secure monitor calls.
+func NonSecureHandler(ctx *ExecCtx) (err error) {
+	// TODO: Secure <> NonSecure API
+
+	if ctx.Debug {
+		ctx.Print()
+	}
+
+	return errors.New("exit")
 }

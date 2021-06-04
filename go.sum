@@ -1,8 +1,6 @@
 github.com/f-secure-foundry/crucible v0.0.0-20210519190101-b84eb54532b9 h1:azI6aa8SlifFH2ZCumSUdz8rqc1gNediUe0WObJov1U=
 github.com/f-secure-foundry/crucible v0.0.0-20210519190101-b84eb54532b9/go.mod h1:lKwj0vB9le2qIIiq3mKqiIcTlgrp8f3l1mD9ScgAzTc=
 github.com/f-secure-foundry/tamago v0.0.0-20210518071534-ddf03422d158/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
-github.com/f-secure-foundry/tamago v0.0.0-20210531123952-d342a52a0ca5 h1:EyXfxIloyQjera0xcQUF+1BNuuyIwy1jc9shqRVH9d0=
-github.com/f-secure-foundry/tamago v0.0.0-20210531123952-d342a52a0ca5/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
 github.com/f-secure-foundry/tamago v0.0.0-20210603154214-60c33cfb0e60 h1:4bN+c5JldBYmPHMQc5JSGPu67cLq9WwLUFbpCc2hDME=
 github.com/f-secure-foundry/tamago v0.0.0-20210603154214-60c33cfb0e60/go.mod h1:Zs5U/3bxiFFQzq23F7KkmS8Gz1jTGH141hbcdFHCk8E=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=

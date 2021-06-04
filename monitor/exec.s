@@ -19,28 +19,29 @@
 // The exception handling uses ARM Thread ID Register (TPIDRURO) in a similar
 // manner to Go own use of TLS (https://golang.org/src/runtime/tls_arm.s).
 //
-// With respect to TrustZone the handler theoretically must save and restore
-// the following registers between Secure <> NonSecure World switches:
+// With respect to TrustZone the handler must save and restore the following
+// registers between Secure <> NonSecure World switches:
 //
 //  • r0-r15, CPSR of System/User/Supervisor modes:
 //
 //    TamaGo (and therefore GoTEE) does not use Supervisor mode, System/User
-//    mode share the same register banks, therefore saving and restoring the
-//    registers of the mode that triggered the exception is sufficient.
+//    mode share the same register banks.
+//
+//    The r0-r15 and CPSR registers of the invoking mode are saved/restored.
 //
 //  • r13-r14 of Abort/Undefined/IRQ modes, r8-r14 of FIQ mode:
 //
 //    In GoTEE exceptions to Abort/Undefined/IRQ/FIQ modes are always handled
-//    with an unrecoverable panic, therefore we do not save/restore their
-//    banked registers.
+//    with an unrecoverable panic, therefore their banked registers are not
+//    saved/restored.
 //
-//  • TODO: Data register of shared coprocessors (e.g VFP/FPU), example:
-//      vstm  rN!, {d0-d15}
-//      vstm  rN!, {d16-d31}
+//  • Data register of shared coprocessors (e.g VFP/FPU):
+//
+//    The d0-d31 and FPSCR registers are saved/restored.
 
 // func Exec(ctx *ExecCtx)
 TEXT ·Exec(SB),$0-4
-	// save caller registers
+	// save general purpose registers
 	MOVM.DB.W	[R0-R12, R14], (R13)	// push {r0-r12, r14}
 
 	// get argument pointer
@@ -74,6 +75,13 @@ TEXT ·Exec(SB),$0-4
 	MCR	15, 0, R1, C1, C1, 0
 
 switch:
+	/* restore VFP registers */
+	MOVW	ExecCtx_VFP(R0), R1
+	WORD	$0xecb10b20			// vldm r1!, {d0-d15}
+	WORD	$0xecf10b20			// vldm r1!, {d15-d31}
+	MOVW	ExecCtx_FPSCR(R0), R1
+	WORD	$0xeee11a10			// vmsr fpscr, r1
+
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
@@ -88,7 +96,7 @@ switch:
 	/* restore context pointer from Thread ID (TPIDRURO) */			\
 	MRC	15, 0, R0, C13, C0, 3						\
 										\
-	/* save caller registers */						\
+	/* save general purpose registers */					\
 	WORD	$0xe8c07fff			/* stmia r0, {r0-r14}^ */	\
 	MOVW	R0, R1								\
 	MOVW	R13, ExecCtx_R0(R1)						\
@@ -101,6 +109,13 @@ switch:
 										\
 	WORD	$0xe10f0000			/* mrs r0, CPSR */		\
 	MOVW	R0, ExecCtx_CPSR(R1)						\
+										\
+	/* save VFP registers */						\
+	MOVW	ExecCtx_VFP(R1), R0						\
+	WORD	$0xeca00b20			/* vstm r0!, {d0-d15} */	\
+	WORD	$0xece00b20			/* vstm r0!, {d16-d31} */	\
+	WORD	$0xeef10a10			/* vmrs r0, fpscr */		\
+	MOVW	R0, ExecCtx_FPSCR(R1)						\
 										\
 	/* switch to System Mode */						\
 	MOVW	$0x1df, R0			/* AIF masked, SYS mode */	\

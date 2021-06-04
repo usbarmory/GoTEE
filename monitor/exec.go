@@ -76,6 +76,9 @@ type ExecCtx struct {
 	SPSR uint32
 	CPSR uint32
 
+	VFP   []uint64 // d0-d31
+	FPSCR uint32
+
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
 
@@ -98,7 +101,7 @@ type ExecCtx struct {
 	buf []byte
 }
 
-// Print logs the execution context state.
+// Print logs the execution context user registers.
 func (ctx *ExecCtx) Print() {
 	log.Printf("\t r0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
 	log.Printf("\t r4:%.8x   r5:%.8x   r6:%.8x   r7:%.8x", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
@@ -129,7 +132,12 @@ func (ctx *ExecCtx) schedule() (err error) {
 	// restore default handlers
 	arm.SetVectorTable(systemVectorTable)
 
-	if mode := ctx.ExceptionMode(); mode != arm.SVC_MODE {
+	mode := ctx.ExceptionMode()
+
+	switch mode {
+	case arm.MON_MODE, arm.SVC_MODE:
+		return
+	default:
 		if ctx.Debug {
 			ctx.Print()
 		}
@@ -185,11 +193,17 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	}
 
 	ctx = &ExecCtx{
-		R15:     entry,
-		Handler: Handler,
-		Memory:  mem,
-		Server:  rpc.NewServer(),
-		ns:      !secure,
+		R15:    entry,
+		VFP:    make([]uint64, 32),
+		Memory: mem,
+		Server: rpc.NewServer(),
+		ns:     !secure,
+	}
+
+	if secure {
+		ctx.Handler = SecureHandler
+	} else {
+		ctx.Handler = NonSecureHandler
 	}
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
