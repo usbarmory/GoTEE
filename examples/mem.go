@@ -14,7 +14,6 @@ import (
 
 // TODO: for now we take a lazy approach of allocating 32MB for each kernel
 const (
-	// TODO: protect against Normal World access
 	KernelStart = 0x80000000
 	KernelSize  = 0x01f00000
 	// DMA is relocated to avoid conflicts with NonSecure world
