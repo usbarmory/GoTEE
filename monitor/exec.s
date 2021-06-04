@@ -7,6 +7,37 @@
 #include "go_asm.h"
 #include "textflag.h"
 
+// GoTEE exception handling relies on one exit point (Exec) and one return
+// point (monitor), both are used for:
+//
+//   Secure      User Mode execution and exception handling
+//   NonSecure System mode execution and supervisor call handling
+//
+// An execution context (ExecCtx) structure is used to hold initial register
+// state at execution as well as store the updated state on re-entry.
+//
+// The exception handling uses ARM Thread ID Register (TPIDRURO) in a similar
+// manner to Go own use of TLS (https://golang.org/src/runtime/tls_arm.s).
+//
+// With respect to TrustZone the handler theoretically must save and restore
+// the following registers between Secure <> NonSecure World switches:
+//
+//  • r0-r15, CPSR of System/User/Supervisor modes:
+//
+//    TamaGo (and therefore GoTEE) does not use Supervisor mode, System/User
+//    mode share the same register banks, therefore saving and restoring the
+//    registers of the mode that triggered the exception is sufficient.
+//
+//  • r13-r14 of Abort/Undefined/IRQ modes, r8-r14 of FIQ mode:
+//
+//    In GoTEE exceptions to Abort/Undefined/IRQ/FIQ modes are always handled
+//    with an unrecoverable panic, therefore we do not save/restore their
+//    banked registers.
+//
+//  • TODO: Data register of shared coprocessors (e.g VFP/FPU), example:
+//      vstm  rN!, {d0-d15}
+//      vstm  rN!, {d16-d31}
+
 // func Exec(ctx *ExecCtx)
 TEXT ·Exec(SB),$0-4
 	// save caller registers
@@ -24,7 +55,7 @@ TEXT ·Exec(SB),$0-4
 	MOVW	ExecCtx_R13(R0), R13
 	MOVW	ExecCtx_R14(R0), R14
 
-	// save context pointer in Thread ID
+	// save context pointer as Thread ID (TPIDRURO)
 	MCR	15, 0, R0, C13, C0, 3
 
 	// switch to monitor mode
@@ -54,7 +85,7 @@ switch:
 	MOVW	$0, R0								\
 	MCR	15, 0, R0, C1, C1, 0						\
 										\
-	/* restore context pointer from Thread ID */				\
+	/* restore context pointer from Thread ID (TPIDRURO) */			\
 	MRC	15, 0, R0, C13, C0, 3						\
 										\
 	/* save caller registers */						\
@@ -72,6 +103,8 @@ switch:
 	MOVW	R0, ExecCtx_CPSR(R1)						\
 										\
 	/* switch to System Mode */						\
+	MOVW	$0x1df, R0			/* AIF masked, SYS mode */	\
+	WORD	$0xe169f000			/* msr SPSR, R0 */		\
 	WORD	$0xf102001f			/* cps 0x1f */			\
 										\
 	/* restore g registers */						\
