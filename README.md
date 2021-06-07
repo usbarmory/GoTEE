@@ -58,7 +58,7 @@ In TEE nomenclature, the privileged unikernel is commonly referred to as
 Trusted OS, while the unprivileged one represents a Trusted Applet.
 
 The GoTEE [examples](https://github.com/f-secure-foundry/GoTEE/tree/master/examples)
-demonstrates concurrent operation of Go unikernels acting as Trusted OS,
+demonstrate concurrent operation of Go unikernels acting as Trusted OS,
 Trusted Applet and Main OS.
 
 > :warning: the Main OS can be any "rich" OS (e.g. Linux), TamaGo is simply
