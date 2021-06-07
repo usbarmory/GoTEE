@@ -169,9 +169,6 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 		csu.SetAccess(i, false, false)
 	}
 
-	// set Cortex-A7 master as Secure
-	csu.SetAccess(0, true, false)
-
 	// restrict ROMCP
 	csu.SetSecurityLevel(13, 0, csu.SEC_LEVEL_4, false)
 
