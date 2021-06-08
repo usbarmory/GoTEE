@@ -129,7 +129,7 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 	}
 
 	if os, err = monitor.Load(osELF, NonSecureStart, NonSecureSize, false); err != nil {
-		log.Fatalf("PL1 could not load applet, %v", err)
+		log.Fatalf("PL1 could not load kernel, %v", err)
 	} else {
 		log.Printf("PL1 loaded kernel addr:%#x size:%d entry:%#x", os.Memory.Start, len(osELF), os.R15)
 	}
