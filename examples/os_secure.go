@@ -104,8 +104,6 @@ func run(ctx *monitor.ExecCtx, wg *sync.WaitGroup) {
 func loadApplet() (ta *monitor.ExecCtx) {
 	var err error
 
-	log.Printf("PL1 %s/%s (%s) • TEE system/monitor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
-
 	if ta, err = monitor.Load(taELF, AppletStart, AppletSize, true); err != nil {
 		log.Fatalf("PL1 could not load applet, %v", err)
 	} else {
@@ -188,6 +186,8 @@ func loadNormalWorld(lock bool) (os *monitor.ExecCtx) {
 
 func main() {
 	var wg sync.WaitGroup
+
+	log.Printf("PL1 %s/%s (%s) • TEE system/monitor (Secure World)", runtime.GOOS, runtime.GOARCH, runtime.Version())
 
 	ta := loadApplet()
 	os := loadNormalWorld(false)
