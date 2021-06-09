@@ -201,13 +201,14 @@ func main() {
 	go run(os, &wg)
 
 	go func() {
-		log.Printf("PL1 will sleep until applet and kernel are done")
 
 		for i := 0; i < 60; i++ {
 			time.Sleep(1 * time.Second)
 			log.Printf("PL1 says %d missisipi", i+1)
 		}
 	}()
+
+	log.Printf("PL1 waiting for applet and kernel")
 	wg.Wait()
 
 	usbarmory.LED("blue", false)

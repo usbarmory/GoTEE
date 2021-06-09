@@ -127,7 +127,7 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/monitor (Secure World)
 00:00:00 PL1 loaded applet addr:0x82000000 size:3897006 entry:0x8206dab8
 00:00:00 PL1 loaded kernel addr:0x84000000 size:3785829 entry:0x8406c6c4
-00:00:00 PL1 will sleep until applet and kernel are done
+00:00:00 PL1 waiting for applet and kernel
 00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
 00:00:00 PL1 starting mode:SYS ns:true  sp:0x00000000 pc:0x8406c6c4
 00:00:00 PL1 tamago/arm (go1.16.4) • system/supervisor (Normal World)
