@@ -12,17 +12,21 @@ import (
 	"unsafe"
 )
 
-// TODO: for now we take a lazy approach of allocating 32MB for each kernel
+// This example layout allocates 32MB for each kernel.
 const (
+	// Secure World OS
 	KernelStart = 0x80000000
 	KernelSize  = 0x01f00000
-	// DMA is relocated to avoid conflicts with NonSecure world
+
+	// Secure World DMA (relocated to avoid conflicts with NonSecure world)
 	dmaStart = 0x81f00000
 	dmaSize  = 0x00100000
 
+	// Secure World Applet
 	AppletStart = 0x82000000
 	AppletSize  = 0x02000000
 
+	// NonSecure World OS
 	NonSecureStart = 0x84000000
 	NonSecureSize  = 0x02000000
 )
