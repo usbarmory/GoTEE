@@ -57,7 +57,7 @@ Example application
 In TEE nomenclature, the privileged unikernel is commonly referred to as
 Trusted OS, while the unprivileged one represents a Trusted Applet.
 
-The GoTEE [examples](https://github.com/f-secure-foundry/GoTEE/tree/master/examples)
+The GoTEE [example](https://github.com/f-secure-foundry/GoTEE-example)
 demonstrate concurrent operation of Go unikernels acting as Trusted OS,
 Trusted Applet and Main OS.
 
@@ -80,12 +80,38 @@ The Trusted Applet sleeps for 5 seconds before attempting to read privileged OS
 memory, which triggers an exception handled by the supervisor which terminates
 the Trusted Applet.
 
-When launched on real hardware such as the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
-the example spawns the Main OS twice, to demonstrate behaviour before and after
-TrustZone restrictions are in effect in using hardware peripherals.
-
 The GoTEE [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
-interface is implemented for communication between the Trusted OS and Trusted Applet.
+interface is implemented for communication between the Trusted OS and Trusted
+Applet.
+
+When launched on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
+the example application is reachable via SSH through
+[Ethernet over USB](https://github.com/f-secure-foundry/usbarmory/wiki/Host-communication)
+(ECM protocol, only supported on Linux hosts):
+
+```
+$ ssh gotee@10.0.0.1
+PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
+
+  help                                   # this help
+  reboot                                 # reset the SoC/board
+  stack                                  # stack trace of current goroutine
+  stackall                               # stack trace of all goroutines
+  md  <hex offset> <size>                # memory display (use with caution)
+  mw  <hex offset> <hex value>           # memory write   (use with caution)
+
+  gotee                                  # TrustZone test w/ TamaGo unikernels
+  csl                                    # show config security levels (CSL)
+  csl <periph> <slave> <hex csl>         #  set config security level  (CSL)
+  sa                                     # show security access (SA)
+  sa  <id> <secure|nonsecure>            #  set security access (SA)
+
+>
+```
+
+The example can be launched with the `gotee` command, it will spawn the Main OS
+twice, to demonstrate behaviour before and after TrustZone restrictions are in
+effect in using real hardware peripherals.
 
 Compiling
 =========
@@ -103,7 +129,8 @@ cd ../bin && export TAMAGO=`pwd`/go
 Build the example trusted applet and kernel executables:
 
 ```
-make example_ta && make example_ns && make example_os
+git clone https://github.com/f-secure-foundry/GoTEE-example
+cd GoTEE-example && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
 Executing and debugging
@@ -113,9 +140,10 @@ Native hardware
 ---------------
 
 The PoC can be executed on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
-by loading the compilation output `os_secure.imx` in
-[SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp),
-(note that for now the PoC only provides serial console feedback).
+by loading the compilation output `trusted_os.imx` in
+[SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
+
+![gotee](https://github.com/f-secure-foundry/GoTEE/wiki/images/gotee.png)
 
 Emulated hardware
 -----------------
@@ -123,15 +151,15 @@ Emulated hardware
 An emulated run under QEMU can be executed as follows:
 
 ```
-make example_ta && make example_ns && make example_os && make qemu
+make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu
 ...
-00:00:00 PL1 tamago/arm (go1.16.4) • TEE system/monitor (Secure World)
+00:00:00 PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
 00:00:00 PL1 loaded applet addr:0x82000000 size:3897006 entry:0x8206dab8
 00:00:00 PL1 loaded kernel addr:0x84000000 size:3785829 entry:0x8406c6c4
-00:00:00 PL1 waiting for applet and kernel
+00:00:00 PL1 will sleep until applet and kernel are done
 00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
 00:00:00 PL1 starting mode:SYS ns:true  sp:0x00000000 pc:0x8406c6c4
-00:00:00 PL1 tamago/arm (go1.16.4) • system/supervisor (Normal World)
+00:00:00 PL1 tamago/arm (go1.16.5) • system/supervisor (Normal World)
 00:00:00 PL1 in Normal World is about to yield back
 00:00:00        r0:00000000   r1:848220c0   r2:00000001   r3:00000000
 00:00:00        r1:848220c0   r2:00000001   r3:00000000   r4:00000000
@@ -139,7 +167,7 @@ make example_ta && make example_ns && make example_os && make qemu
 00:00:00        r9:0000004b  r10:848000e0  r11:802bd9f0  r12:00000000
 00:00:00        sp:8484ff84   lr:8414b10c   pc:841471b4 spsr:600000df
 00:00:00 PL1 stopped mode:SYS ns:true sp:0x8484ff84 lr:0x8414b10c pc:0x841471b4 err:exception mode MON
-00:00:00 PL0 tamago/arm (go1.16.4) • TEE user applet (Secure World)
+00:00:00 PL0 tamago/arm (go1.16.5) • TEE user applet (Secure World)
 00:00:00 PL0 obtained 16 random bytes from PL1: 0ccee42855937b096ad13f395ba6f633
 00:00:00 PL0 requests echo via RPC: hello
 00:00:00 PL0 received echo via RPC: hello
@@ -160,13 +188,13 @@ make example_ta && make example_ns && make example_os && make qemu
 ```
 
 > :warning: the emulated run performs partial tests due to lack of full
-> TrustZone support by QEMU
+> TrustZone support by QEMU.
 
 Debugging
 =========
 
 ```
-make example_ta && make example_ns && make example_os && make qemu-gdb
+make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu-gdb
 ```
 
 ```

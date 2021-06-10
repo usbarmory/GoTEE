@@ -22,6 +22,7 @@ import (
 	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
+	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
 )
 
 const (
@@ -217,6 +218,9 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		memAttr |= arm.TTE_AP_011 << 10
 		ctx.SPSR = UserMode
 	}
+
+	// Cortex-A7 master needs CP15SDISABLE to low for arm.set_ttbr0
+	csu.SetAccess(0, true, false)
 
 	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
 
