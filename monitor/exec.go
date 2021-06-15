@@ -23,6 +23,7 @@ import (
 	"github.com/f-secure-foundry/tamago/dma"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
+	"github.com/f-secure-foundry/tamago/soc/imx6/tzasc"
 )
 
 const (
@@ -176,8 +177,14 @@ func (ctx *ExecCtx) Run() (err error) {
 
 // Load returns an execution context initialized for the argument ELF
 // executable, the secure flag controls whether the context belongs to a secure
-// partition (e.g. TrustZone Secure World) or not (e.g. TrustZone Normal
-// World).
+// partition (e.g. TrustZone Secure World) or a non-secure one (e.g. TrustZone
+// Normal World).
+//
+// In case of a non-secure execution context, its memory is configured as
+// NonSecure by means of MMU NS bit and memory controller region configuration.
+// Additionally ARM debugging features are disabled along with NonSecure
+// ability to reinstate them. Any additional peripheral restrictions are up to
+// the caller.
 func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err error) {
 	mem := &dma.Region{
 		Start: start,
@@ -210,6 +217,19 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
 	if ctx.ns {
+		// Allow NonSecure World R/W access to its own memory.
+		if err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
+			return
+		}
+
+		// Disable ARM debugging, which would otherwise allow access to
+		// Secure World.
+		imx6.DisableDebug()
+
+		// Restrict access to IOMUXC_GPR to prevent NonSecure World
+		// from issuing imx6.EnableDebug().
+		csu.SetSecurityLevel(7, 0, csu.SEC_LEVEL_4, false)
+
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
 		memAttr |= arm.TTE_AP_001<<10 | arm.TTE_NS
@@ -221,7 +241,6 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 
 	// Cortex-A7 master needs CP15SDISABLE to low for arm.set_ttbr0
 	csu.SetAccess(0, true, false)
-
 	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
 
 	return
