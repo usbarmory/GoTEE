@@ -182,9 +182,7 @@ func (ctx *ExecCtx) Run() (err error) {
 //
 // In case of a non-secure execution context, its memory is configured as
 // NonSecure by means of MMU NS bit and memory controller region configuration.
-// Additionally ARM debugging features are disabled along with NonSecure
-// ability to reinstate them. Any additional peripheral restrictions are up to
-// the caller.
+// Any additional peripheral restrictions are up to the caller.
 func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err error) {
 	mem := &dma.Region{
 		Start: start,
@@ -218,17 +216,11 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 
 	if ctx.ns {
 		// Allow NonSecure World R/W access to its own memory.
-		if err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
+		err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR))
+
+		if err != nil {
 			return
 		}
-
-		// Disable ARM debugging, which would otherwise allow access to
-		// Secure World.
-		imx6.DisableDebug()
-
-		// Restrict access to IOMUXC_GPR to prevent NonSecure World
-		// from issuing imx6.EnableDebug().
-		csu.SetSecurityLevel(7, 0, csu.SEC_LEVEL_4, false)
 
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
