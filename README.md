@@ -101,6 +101,7 @@ PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
   mw  <hex offset> <hex value>           # memory write   (use with caution)
 
   gotee                                  # TrustZone test w/ TamaGo unikernels
+  dbg                                    # show ARM debug permissions
   csl                                    # show config security levels (CSL)
   csl <periph> <slave> <hex csl>         #  set config security level  (CSL)
   sa                                     # show security access (SA)
