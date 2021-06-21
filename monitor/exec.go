@@ -214,14 +214,16 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
-	if ctx.ns {
+	if ctx.ns && imx6.Native {
 		// Allow NonSecure World R/W access to its own memory.
 		err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR))
 
-		if err != nil && imx6.Native {
+		if err != nil {
 			return
 		}
+	}
 
+	if ctx.ns {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
 		memAttr |= arm.TTE_AP_001<<10 | arm.TTE_NS
