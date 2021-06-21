@@ -218,7 +218,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		// Allow NonSecure World R/W access to its own memory.
 		err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR))
 
-		if err != nil {
+		if err != nil && imx6.Native {
 			return
 		}
 
