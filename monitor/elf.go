@@ -35,9 +35,13 @@ func parseELF(mem *dma.Region, buf []byte) (entry uint32, err error) {
 			panic(fmt.Sprintf("failed to read LOAD section at idx %d, %q", idx, err))
 		}
 
+		if uint32(prg.Paddr) < mem.Start {
+			return 0, fmt.Errorf("incompatible memory layout (paddr:%x)", prg.Paddr)
+		}
+
 		off := uint32(prg.Paddr) - mem.Start
 
-		if off > mem.Start+uint32(mem.Size) {
+		if off > uint32(mem.Size) {
 			return 0, fmt.Errorf("incompatible memory layout (paddr:%x off:%x)", prg.Paddr, off)
 		}
 
