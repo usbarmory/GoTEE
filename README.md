@@ -199,7 +199,7 @@ make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu-g
 ```
 
 ```
-arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" os_secure
+arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" trusted_os.elf
 >>> add-symbol-file examples/ta
 >>> b ta.go:main.main
 ```
