@@ -11,6 +11,10 @@ based Trusted Execution Environments (TEE), bringing Go memory safety,
 convenience and capabilities to bare metal execution within TrustZone Secure
 World or equivalent isolation technology.
 
+GoTEE can supervise pure Go, Rust or C based freestanding Trusted Applets,
+implementing the GoTEE API, as well as any operating system capable of running
+in TrustZone Normal World such as Linux.
+
 A compatibility layer for
 [libutee](https://optee.readthedocs.io/en/latest/architecture/libraries.html#libutee)
 is planned, allowing execution of/as [OP-TEE](https://www.op-tee.org/)
@@ -44,12 +48,10 @@ Implementation status
 - [ ] PL0 virtual address space
 - [x] PL0/PL1 base syscall API
 - [x] PL0/PL1 user net/rpc API
-- [ ] PL0/PL1 GoTEE crypto API
 - [x] Secure World execution
 - [x] Normal World execution
 - [x] Normal World isolation
-- [ ] Secure/Normal World API
-- [ ] TEE Client API
+- [ ] Secure/Normal World TEE Client API
 
 Example application
 ===================
@@ -65,6 +67,9 @@ Trusted Applet and Main OS.
 > used for a self-contained example. The same applies to the Trusted Applet
 > which can be any bare metal application capable of running in user mode and
 > implementing GoTEE API, such as freestanding C or Rust programs.
+>
+> A Rust [example](https://github.com/f-secure-foundry/GoTEE-example/tree/master/trusted_applet_rust)
+> can be used replacing `trusted_applet_go` with `trusted_applet_rust` when building.
 
 The example trusted OS/applet combination performs basic testing of concurrent
 execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
@@ -134,6 +139,9 @@ git clone https://github.com/f-secure-foundry/GoTEE-example
 cd GoTEE-example && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
+> :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
+> TA example, this requires Rust nightly and the `armv7a-none-eabi` toolchain.
+
 Executing and debugging
 =======================
 
@@ -149,10 +157,11 @@ by loading the compilation output `trusted_os.imx` in
 Emulated hardware
 -----------------
 
-An emulated run under QEMU can be executed as follows:
+An emulated run of the previously compiled executables under QEMU can be
+executed as follows:
 
 ```
-make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu
+make qemu
 ...
 00:00:00 PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
 00:00:00 PL1 loaded applet addr:0x82000000 size:3897006 entry:0x8206dab8
@@ -192,10 +201,10 @@ make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu
 > TrustZone support by QEMU.
 
 Debugging
-=========
+---------
 
 ```
-make nonsecure_os_go && make trusted_applet_go && make trusted_os && make qemu-gdb
+make qemu-gdb
 ```
 
 ```
