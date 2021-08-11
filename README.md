@@ -142,6 +142,8 @@ cd GoTEE-example && make nonsecure_os_go && make trusted_applet_go && make trust
 > :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
 > TA example, this requires Rust nightly and the `armv7a-none-eabi` toolchain.
 
+All compilation outputs are written under a `bin` subdirectory.
+
 Executing and debugging
 =======================
 
@@ -149,7 +151,7 @@ Native hardware
 ---------------
 
 The PoC can be executed on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
-by loading the compilation output `trusted_os.imx` in
+by loading the compilation output `bin/trusted_os.imx` in
 [SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
 
 ![gotee](https://github.com/f-secure-foundry/GoTEE/wiki/images/gotee.png)
@@ -208,9 +210,9 @@ make qemu-gdb
 ```
 
 ```
-arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" trusted_os.elf
->>> add-symbol-file examples/ta
->>> b ta.go:main.main
+arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" bin/trusted_os.elf
+>>> add-symbol-file bin/trusted_applet.elf
+>>> b main.main
 ```
 
 Authors
