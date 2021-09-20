@@ -9,7 +9,6 @@ package monitor
 import (
 	"bytes"
 	"debug/elf"
-	_ "embed"
 	"fmt"
 
 	"github.com/f-secure-foundry/tamago/dma"
