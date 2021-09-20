@@ -4,7 +4,7 @@ Introduction
 The GoTEE framework implements concurrent instantiation of
 [TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
 privileged and unprivileged modes, interacting with each other through monitor
-mode and custom system calls
+mode and custom system calls.
 
 With these capabilities GoTEE implements a [TamaGo](https://github.com/f-secure-foundry/tamago)
 based Trusted Execution Environments (TEE), bringing Go memory safety,
