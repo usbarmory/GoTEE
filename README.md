@@ -92,7 +92,7 @@ Applet.
 When launched on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
 the example application is reachable via SSH through
 [Ethernet over USB](https://github.com/f-secure-foundry/usbarmory/wiki/Host-communication)
-(ECM protocol, only supported on Linux hosts):
+(ECM protocol, supported on Linux and macOS hosts):
 
 ```
 $ ssh gotee@10.0.0.1
