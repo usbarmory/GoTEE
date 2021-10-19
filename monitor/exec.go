@@ -214,11 +214,14 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
-	if ctx.ns && imx6.Native {
-		// Allow NonSecure World R/W access to its own memory.
-		err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR))
+	// redundant enforcement of Region 0 (entire memory space) defaults
+	if tzasc.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
+		return
+	}
 
-		if err != nil {
+	if ctx.ns && imx6.Native {
+		// allow NonSecure World R/W access to its own memory
+		if err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
 			return
 		}
 	}
@@ -233,7 +236,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		ctx.SPSR = UserMode
 	}
 
-	// Cortex-A7 master needs CP15SDISABLE to low for arm.set_ttbr0
+	// Cortex-A7 master needs CP15SDISABLE low for arm.set_ttbr0
 	csu.SetAccess(0, true, false)
 	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
 
