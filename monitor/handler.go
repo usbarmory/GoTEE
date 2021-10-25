@@ -13,6 +13,7 @@ import (
 
 	"github.com/f-secure-foundry/GoTEE/syscall"
 
+	"github.com/f-secure-foundry/tamago/arm"
 	"github.com/f-secure-foundry/tamago/soc/imx6"
 )
 
@@ -55,11 +56,16 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 // NonSecureHandler is the default handler for supervisor (SVC) exceptions raised
 // by a non-secure execution context to handle supported GoTEE secure monitor calls.
 func NonSecureHandler(ctx *ExecCtx) (err error) {
-	// TODO: Secure <> NonSecure API
-
 	if ctx.Debug {
 		ctx.Print()
 	}
 
-	return errors.New("exit")
+	vector := ctx.ExceptionVector
+
+	if vector == arm.SUPERVISOR {
+		// TODO: Secure <> NonSecure API
+		return errors.New("exit")
+	}
+
+	return errors.New(arm.VectorName(vector))
 }

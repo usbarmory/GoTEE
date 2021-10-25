@@ -85,7 +85,7 @@ switch:
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
-#define MONITOR_EXCEPTION()							\
+#define MONITOR_EXCEPTION(OFFSET)						\
 	/* save R0 */								\
 	MOVW	R0, R13								\
 										\
@@ -110,6 +110,9 @@ switch:
 	WORD	$0xe10f0000			/* mrs r0, CPSR */		\
 	MOVW	R0, ExecCtx_CPSR(R1)						\
 										\
+	MOVW	$OFFSET, R0							\
+	MOVW	R0, ExecCtx_ExceptionVector(R1)					\
+										\
 	/* save VFP registers */						\
 	MOVW	ExecCtx_VFP(R1), R0						\
 	WORD	$0xeca00b20			/* vstm r0!, {d0-d15} */	\
@@ -129,5 +132,23 @@ switch:
 	/* restore PC from LR */						\
 	MOVW	R14, R15							\
 
-TEXT ·monitor(SB),NOSPLIT|NOFRAME,$0
-	MONITOR_EXCEPTION()
+TEXT ·resetMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x0)
+
+TEXT ·undefinedMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x4)
+
+TEXT ·supervisorMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x8)
+
+TEXT ·prefetchAbortMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0xc)
+
+TEXT ·dataAbortMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x10)
+
+TEXT ·irqMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x18)
+
+TEXT ·fiqMonitor(SB),NOSPLIT|NOFRAME,$0
+	MONITOR_EXCEPTION(0x1c)

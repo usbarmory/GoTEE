@@ -4,8 +4,8 @@
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
 
-// Package monitor provides supervisor support for TamaGo unikernels
-// to allow scheduling of user mode executables.
+// Package monitor provides supervisor support for TamaGo unikernels to allow
+// scheduling of Secure user mode or NonSecure system mode executables.
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
 // supported by the TamaGo framework for bare metal Go on ARM SoCs, see
@@ -13,7 +13,7 @@
 package monitor
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"net/rpc"
 	"runtime"
@@ -34,30 +34,37 @@ const (
 var systemVectorTable = arm.SystemVectorTable()
 
 var monitorVectorTable = arm.VectorTable{
-	Reset:         monitor,
-	Undefined:     monitor,
-	Supervisor:    monitor,
-	PrefetchAbort: monitor,
-	DataAbort:     monitor,
-	IRQ:           monitor,
-	FIQ:           monitor,
+	Reset:         resetMonitor,
+	Undefined:     undefinedMonitor,
+	Supervisor:    supervisorMonitor,
+	PrefetchAbort: prefetchAbortMonitor,
+	DataAbort:     dataAbortMonitor,
+	IRQ:           irqMonitor,
+	FIQ:           fiqMonitor,
 }
 
 var mux sync.Mutex
 
 // defined in exec.s
-func monitor()
+func resetMonitor()
+func undefinedMonitor()
+func supervisorMonitor()
+func prefetchAbortMonitor()
+func dataAbortMonitor()
+func irqMonitor()
+func fiqMonitor()
 
-// Exec allows execution of an executable in user mode. The execution is
-// isolated from the invoking Go runtime as user mode can yield back to it
-// through exceptions (e.g. syscalls through SVC).
+// Exec allows execution of an executable in Secure user mode or NonSecure
+// system mode. The execution is isolated from the invoking Go runtime,
+// yielding back to it is supported through exceptions (e.g. syscalls through
+// SVC).
 //
 // The execution context pointer allows task initialization and it is updated
-// with the user mode program state at return, it can therefore be passed again
-// to resume the task.
+// with the program state at return, it can therefore be passed again to resume
+// the task.
 func Exec(ctx *ExecCtx)
 
-// ExecCtx represents a user mode executable initialization or returning state.
+// ExecCtx represents a executable initialization or returning state.
 type ExecCtx struct {
 	R0   uint32
 	R1   uint32
@@ -77,6 +84,8 @@ type ExecCtx struct {
 	R15  uint32 // PC
 	SPSR uint32
 	CPSR uint32
+
+	ExceptionVector int
 
 	VFP   []uint64 // d0-d31
 	FPSCR uint32
@@ -105,10 +114,12 @@ type ExecCtx struct {
 
 // Print logs the execution context user registers.
 func (ctx *ExecCtx) Print() {
-	log.Printf("\t r0:%.8x   r1:%.8x   r2:%.8x   r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
-	log.Printf("\t r4:%.8x   r5:%.8x   r6:%.8x   r7:%.8x", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
-	log.Printf("\t r8:%.8x   r9:%.8x  r10:%.8x  r11:%.8x", ctx.R8, ctx.R9, ctx.R10, ctx.R11)
-	log.Printf("\tr12:%.8x   sp:%.8x   lr:%.8x   pc:%.8x  spsr:%.8x", ctx.R12, ctx.R13, ctx.R14, ctx.R15, ctx.SPSR)
+	cpsr, spsr := ctx.Mode()
+
+	log.Printf("   r0:%.8x  r1:%.8x  r2:%.8x  r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
+	log.Printf("   r4:%.8x  r5:%.8x  r6:%.8x  r7:%.8x", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
+	log.Printf("   r8:%.8x  r9:%.8x r10:%.8x r11:%.8x cpsr:%.8x (%s)", ctx.R8, ctx.R9, ctx.R10, ctx.R11, ctx.CPSR, arm.ModeName(cpsr))
+	log.Printf("  r12:%.8x  sp:%.8x  lr:%.8x  pc:%.8x spsr:%.8x (%s)", ctx.R12, ctx.R13, ctx.R14, ctx.R15, ctx.SPSR, arm.ModeName(spsr))
 }
 
 // NonSecure returns whether the execution context is loaded as non-secure.
@@ -117,8 +128,10 @@ func (ctx *ExecCtx) NonSecure() bool {
 }
 
 // Mode returns the processor mode.
-func (ctx *ExecCtx) ExceptionMode() int {
-	return int(ctx.CPSR & 0x1f)
+func (ctx *ExecCtx) Mode() (current int, saved int) {
+	current = int(ctx.CPSR & 0x1f)
+	saved = int(ctx.SPSR & 0x1f)
+	return
 }
 
 func (ctx *ExecCtx) schedule() (err error) {
@@ -134,7 +147,7 @@ func (ctx *ExecCtx) schedule() (err error) {
 	// restore default handlers
 	arm.SetVectorTable(systemVectorTable)
 
-	mode := ctx.ExceptionMode()
+	mode, _ := ctx.Mode()
 
 	switch mode {
 	case arm.MON_MODE, arm.SVC_MODE:
@@ -144,19 +157,18 @@ func (ctx *ExecCtx) schedule() (err error) {
 			ctx.Print()
 		}
 
-		return fmt.Errorf("exception mode %s", arm.ModeName(mode))
+		return errors.New(arm.ModeName(mode))
 	}
 
 	return
 }
 
-// Run starts the execution context and handles user mode system calls. The
-// function yields to the invoking Go runtime only when exceptions are issued
-// in user mode.
+// Run starts the execution context and handles system or monitor calls. The
+// execution yields back to the invoking Go runtime only when exceptions are
+// caught.
 //
-// The function handles system calls (see Handler()) and only returns if
-// non-supervisor exceptions are issued or when `SYS_EXIT` system call is
-// handled.
+// The function invokes the context Handler() and returns when an unhandled
+// exception, or any other error, is raised.
 func (ctx *ExecCtx) Run() (err error) {
 	for {
 		if err = ctx.schedule(); err != nil {
