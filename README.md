@@ -165,22 +165,21 @@ executed as follows:
 ```
 make qemu
 ...
-00:00:00 PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
-00:00:00 PL1 loaded applet addr:0x82000000 size:3897006 entry:0x8206dab8
-00:00:00 PL1 loaded kernel addr:0x84000000 size:3785829 entry:0x8406c6c4
-00:00:00 PL1 will sleep until applet and kernel are done
-00:00:00 PL1 starting mode:USR ns:false sp:0x00000000 pc:0x8206dab8
-00:00:00 PL1 starting mode:SYS ns:true  sp:0x00000000 pc:0x8406c6c4
-00:00:00 PL1 tamago/arm (go1.16.5) • system/supervisor (Normal World)
+00:00:00 PL1 tamago/arm (go1.17.1) • TEE system/monitor (Secure World)
+00:00:00 PL1 loaded applet addr:0x94000000 size:4093296 entry:0x9406e3a4
+00:00:00 PL1 loaded kernel addr:0x80000000 size:3715053 entry:0x8006cd34
+00:00:00 PL1 waiting for applet and kernel
+00:00:00 PL1 starting mode:USR ns:false sp:0x96000000 pc:0x9406e3a4
+00:00:00 PL1 starting mode:SYS ns:true sp:0x00000000 pc:0x8006cd34
+00:00:00 PL1 tamago/arm (go1.17.1) • system/supervisor (Normal World)
 00:00:00 PL1 in Normal World is about to yield back
-00:00:00        r0:00000000   r1:848220c0   r2:00000001   r3:00000000
-00:00:00        r1:848220c0   r2:00000001   r3:00000000   r4:00000000
-00:00:00        r5:00000000   r6:00000000   r7:00000000   r8:00000007
-00:00:00        r9:0000004b  r10:848000e0  r11:802bd9f0  r12:00000000
-00:00:00        sp:8484ff84   lr:8414b10c   pc:841471b4 spsr:600000df
-00:00:00 PL1 stopped mode:SYS ns:true sp:0x8484ff84 lr:0x8414b10c pc:0x841471b4 err:exception mode MON
-00:00:00 PL0 tamago/arm (go1.16.5) • TEE user applet (Secure World)
-00:00:00 PL0 obtained 16 random bytes from PL1: 0ccee42855937b096ad13f395ba6f633
+00:00:00    r0:00000000  r1:814223f0  r2:00000001  r3:00000000
+00:00:00    r4:00000000  r5:00000000  r6:00000000  r7:00000000
+00:00:00    r8:00000007  r9:00000034 r10:814000f0 r11:802885a9 cpsr:600001d6 (MON)
+00:00:00   r12:00000000  sp:81441f88  lr:80146ac8  pc:801444c0 spsr:600000df (SYS)
+00:00:00 PL1 stopped mode:SYS ns:true sp:0x81441f88 lr:0x80146ac8 pc:0x801444c0 err:exit
+00:00:00 PL0 tamago/arm (go1.17.1) • TEE user applet (Secure World)
+00:00:00 PL0 obtained 16 random bytes from PL1: 431ad651c0c8fb66f929df143eed6411
 00:00:00 PL0 requests echo via RPC: hello
 00:00:00 PL0 received echo via RPC: hello
 00:00:00 PL0 will sleep for 5 seconds
@@ -189,13 +188,12 @@ make qemu
 ...
 00:00:05 PL1 says 5 missisipi
 00:00:05 PL0 says 5 missisipi
-00:00:05 PL0 is about to read PL1 Secure World memory at 0x80010000
-00:00:05        r0:80010000   r1:828220c0   r2:00000001   r3:00000000
-00:00:05        r1:828220c0   r2:00000001   r3:00000000   r4:00000000
-00:00:05        r5:00000000   r6:00000000   r7:00000000   r8:00000007
-00:00:05        r9:00000037  r10:828000e0  r11:802bd9f0  r12:00000000
-00:00:05        sp:8284df2c   lr:821593d8   pc:82011374 spsr:600000d0
-00:00:05 PL1 stopped mode:USR ns:false sp:0x8284df2c lr:0x821593d8 pc:0x82011374 err:exception mode ABT
+00:00:05 PL0 is about to read PL1 Secure World memory at 0x90010000
+00:00:05    r0:90010000  r1:948220c0  r2:90010000  r3:00000000
+00:00:05    r4:00000000  r5:00000000  r6:00000000  r7:00000000
+00:00:05    r8:00000007  r9:00000044 r10:948000f0 r11:942cba81 cpsr:600001d7 (ABT)
+00:00:05   r12:00000000  sp:9484ff04  lr:94168868  pc:9401132c spsr:600000d0 (USR)
+00:00:05 PL1 stopped mode:USR ns:false sp:0x9484ff04 lr:0x94168868 pc:0x9401132c err:ABT
 00:00:05 PL1 says goodbye
 ```
 
