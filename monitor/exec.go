@@ -249,7 +249,11 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 	}
 
 	// Cortex-A7 master needs CP15SDISABLE low for arm.set_ttbr0
-	csu.SetAccess(0, true, false)
+	if secure, lock, err := csu.GetAccess(0); !secure && !lock && !err {
+		csu.SetAccess(0, true, false)
+		defer csu.SetAccess(0, false, false)
+	}
+
 	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
 
 	return
