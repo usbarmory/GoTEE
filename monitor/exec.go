@@ -187,29 +187,15 @@ func (ctx *ExecCtx) Run() (err error) {
 	return
 }
 
-// Load returns an execution context initialized for the argument ELF
-// executable, the secure flag controls whether the context belongs to a secure
-// partition (e.g. TrustZone Secure World) or a non-secure one (e.g. TrustZone
-// Normal World).
+// Load returns an execution context initialized for the argument entry point
+// and memory region, the secure flag controls whether the context belongs to a
+// secure partition (e.g. TrustZone Secure World) or a non-secure one (e.g.
+// TrustZone Normal World).
 //
-// In case of a non-secure execution context, its memory is configured as
+// In case of a non-secure execution context, the memory is configured as
 // NonSecure by means of MMU NS bit and memory controller region configuration.
 // Any additional peripheral restrictions are up to the caller.
-func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err error) {
-	mem := &dma.Region{
-		Start: start,
-		Size:  size,
-	}
-
-	mem.Init()
-	mem.Reserve(mem.Size, 0)
-
-	entry, err := parseELF(mem, elf)
-
-	if err != nil {
-		return
-	}
-
+func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	ctx = &ExecCtx{
 		R15:    entry,
 		VFP:    make([]uint64, 32),
@@ -233,7 +219,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 
 	if ctx.ns && imx6.Native {
 		// allow NonSecure World R/W access to its own memory
-		if err = tzasc.EnableRegion(1, start, size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
+		if err = tzasc.EnableRegion(1, mem.Start, mem.Size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
 			return
 		}
 	}
@@ -254,7 +240,7 @@ func Load(elf []byte, start uint32, size int, secure bool) (ctx *ExecCtx, err er
 		defer csu.SetAccess(0, false, false)
 	}
 
-	imx6.ARM.ConfigureMMU(start, start+uint32(size), memAttr)
+	imx6.ARM.ConfigureMMU(mem.Start, mem.Start+uint32(mem.Size), memAttr)
 
 	return
 }
