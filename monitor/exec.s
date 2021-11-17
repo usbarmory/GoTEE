@@ -37,7 +37,7 @@
 //
 //  • Data register of shared coprocessors (e.g VFP/FPU):
 //
-//    The d0-d31 and FPSCR registers are saved/restored.
+//    The d0-d31, FPSCR and FPEXC registers are saved/restored.
 
 // func Exec(ctx *ExecCtx)
 TEXT ·Exec(SB),$0-4
@@ -81,6 +81,8 @@ switch:
 	WORD	$0xecf10b20			// vldm r1!, {d15-d31}
 	MOVW	ExecCtx_FPSCR(R0), R1
 	WORD	$0xeee11a10			// vmsr fpscr, r1
+	MOVW	ExecCtx_FPEXC(R0), R1
+	WORD	$0xeee81a10			// vmsr fpexc, r1
 
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
@@ -112,6 +114,14 @@ switch:
 										\
 	MOVW	$OFFSET, R0							\
 	MOVW	R0, ExecCtx_ExceptionVector(R1)					\
+										\
+	/* Save FPEXC */							\
+	WORD	$0xeef80a10			/* vmrs r0, fpexc */		\
+	MOVW	R0, ExecCtx_FPEXC(R1)						\
+										\
+	/* Ensure VFP is enabled */						\
+	MOVW	$0x40000000, R0							\
+	WORD	$0xeee80a10			/* vmsr fpexc, r0 */		\
 										\
 	/* save VFP registers */						\
 	MOVW	ExecCtx_VFP(R1), R0						\

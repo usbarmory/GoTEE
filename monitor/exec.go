@@ -89,6 +89,7 @@ type ExecCtx struct {
 
 	VFP   []uint64 // d0-d31
 	FPSCR uint32
+	FPEXC uint32
 
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
