@@ -120,7 +120,7 @@ switch:
 	MOVW	R0, ExecCtx_FPEXC(R1)						\
 										\
 	/* Ensure VFP is enabled */						\
-	MOVW	$0x40000000, R0							\
+	MOVW	$(1 << 30), R0							\
 	WORD	$0xeee80a10			/* vmsr fpexc, r0 */		\
 										\
 	/* save VFP registers */						\
