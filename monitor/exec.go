@@ -200,10 +200,14 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 	ctx = &ExecCtx{
 		R15:    entry,
 		VFP:    make([]uint64, 32),
-		FPEXC:  1 << 30,
 		Memory: mem,
 		Server: rpc.NewServer(),
 		ns:     !secure,
+	}
+
+	if secure {
+		// enable VFP
+		ctx.FPEXC = 1 << arm.FPEXC_EN
 	}
 
 	if secure {
