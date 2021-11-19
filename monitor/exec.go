@@ -54,6 +54,17 @@ func dataAbortMonitor()
 func irqMonitor()
 func fiqMonitor()
 
+func init() {
+	if !imx6.Native {
+		return
+	}
+
+	// redundant enforcement of Region 0 (entire memory space) defaults
+	if err := tzasc.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
+		panic("could not set TZASC defaults")
+	}
+}
+
 // Exec allows execution of an executable in Secure user mode or NonSecure
 // system mode. The execution is isolated from the invoking Go runtime,
 // yielding back to it is supported through exceptions (e.g. syscalls through
@@ -217,11 +228,6 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 	}
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
-
-	// redundant enforcement of Region 0 (entire memory space) defaults
-	if tzasc.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
-		return
-	}
 
 	if ctx.ns && imx6.Native {
 		// allow NonSecure World R/W access to its own memory
