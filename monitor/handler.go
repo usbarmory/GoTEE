@@ -53,19 +53,21 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 	return
 }
 
-// NonSecureHandler is the default handler for supervisor (SVC) exceptions raised
-// by a non-secure execution context to handle supported GoTEE secure monitor calls.
+// NonSecureHandler is the default handler for supervisor (SVC) exceptions
+// raised by a non-secure execution context to handle supported GoTEE secure
+// monitor calls.
 func NonSecureHandler(ctx *ExecCtx) (err error) {
+	vector := ctx.ExceptionVector
+
 	if ctx.Debug {
 		ctx.Print()
 	}
 
-	vector := ctx.ExceptionVector
-
-	if vector == arm.SUPERVISOR {
-		// TODO: Secure <> NonSecure API
-		return errors.New("exit")
+	if vector != arm.SUPERVISOR {
+		return errors.New(arm.VectorName(vector))
 	}
 
-	return errors.New(arm.VectorName(vector))
+	// TODO: Secure <> NonSecure API
+
+	return
 }

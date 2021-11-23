@@ -11,11 +11,6 @@ TEXT ·Supervisor(SB),$0
 	SWI	$0
 	RET
 
-// func Monitor()
-TEXT ·Monitor(SB),$0
-	WORD	$0xe1600070 // smc 0
-	RET
-
 // func Exit()
 TEXT ·Exit(SB),$0
 	MOVW	$const_SYS_EXIT, R0
