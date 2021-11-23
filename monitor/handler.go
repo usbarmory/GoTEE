@@ -59,10 +59,6 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 func NonSecureHandler(ctx *ExecCtx) (err error) {
 	vector := ctx.ExceptionVector
 
-	if ctx.Debug {
-		ctx.Print()
-	}
-
 	if vector != arm.SUPERVISOR {
 		return errors.New(arm.VectorName(vector))
 	}
