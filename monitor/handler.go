@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/f-secure-foundry/GoTEE/syscall"
 
@@ -67,7 +68,7 @@ func NonSecureHandler(ctx *ExecCtx) (err error) {
 		return errors.New(arm.VectorName(vector))
 	}
 
-	// TODO: Secure <> NonSecure API
+	log.Printf("TODO: Secure <> NonSecure API")
 
 	return
 }
