@@ -64,7 +64,7 @@ TEXT ·Exec(SB),$0-4
 
 	// restore mode
 	MOVW	ExecCtx_SPSR(R0), R1
-	WORD	$0xe169f001			// msr SPSR, r1
+	WORD	$0xe16ff001			// msr SPSR, r1
 
 	MOVW	ExecCtx_ns(R0), R1
 	TST	$1, R1
@@ -132,7 +132,7 @@ switch:
 										\
 	/* switch to System Mode */						\
 	MOVW	$0x1df, R0			/* AIF masked, SYS mode */	\
-	WORD	$0xe169f000			/* msr SPSR, R0 */		\
+	WORD	$0xe16ff000			/* msr SPSR, R0 */		\
 	WORD	$0xf102001f			/* cps 0x1f */			\
 										\
 	/* restore g registers */						\
