@@ -93,8 +93,14 @@ type ExecCtx struct {
 	R13  uint32 // SP
 	R14  uint32 // LR
 	R15  uint32 // PC
-	SPSR uint32
+
+	// CPSR is the Current Program Status Register of the handler which
+	// caught the exception raised by the execution context.
 	CPSR uint32
+
+	// SPSR (Saved Program Status Register) is the CPSR of the execution
+	// context as it raised the exception.
+	SPSR uint32
 
 	ExceptionVector int
 
