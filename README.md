@@ -105,11 +105,12 @@ PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
 >
 ```
 
-The example can be launched with the `gotee` command, it will spawn the Main OS
-twice, to demonstrate behaviour before and after TrustZone restrictions are in
-effect in using real hardware peripherals.
+The example can be launched with the `gotee` command which spawns the Main OS
+twice to demonstrate behaviour before and after TrustZone restrictions are in
+effect using real hardware peripherals.
 
-Additionally the `linux` command spawns an [USB armory Debian base image](https://github.com/f-secure-foundry/usbarmory-debian-base_image)
+Additionally the `linux` command can be used to spawn the
+[USB armory Debian base image](https://github.com/f-secure-foundry/usbarmory-debian-base_image)
 as Main OS in NonSecure World.
 
 > :warning: only USB armory Debian base image releases >= 20211129 are
