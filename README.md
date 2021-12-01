@@ -94,7 +94,7 @@ PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
   mw  <hex offset> <hex value>           # memory write   (use with caution)
 
   gotee                                  # TrustZone example w/ TamaGo unikernels
-  linux <uSD|eMMC>                       # Boot NonSecure USB armory Debian base image
+  linux <uSD|eMMC>                       # boot NonSecure USB armory Debian base image
 
   dbg                                    # show ARM debug permissions
   csl                                    # show config security levels (CSL)
