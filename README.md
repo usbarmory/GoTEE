@@ -1,12 +1,12 @@
 Introduction
 ============
 
-The [GoTEE](https://github.com/f-secure-foundry/GoTEE) framework implements concurrent instantiation of
-[TamaGo](https://github.com/f-secure-foundry/tamago) based unikernels in
+The [GoTEE](https://github.com/usbarmory/GoTEE) framework implements concurrent instantiation of
+[TamaGo](https://github.com/usbarmory/tamago) based unikernels in
 privileged and unprivileged modes, interacting with each other through monitor
 mode and custom system calls.
 
-With these capabilities GoTEE implements a [TamaGo](https://github.com/f-secure-foundry/tamago)
+With these capabilities GoTEE implements a [TamaGo](https://github.com/usbarmory/tamago)
 based Trusted Execution Environments (TEE), bringing Go memory safety,
 convenience and capabilities to bare metal execution within TrustZone Secure
 World or equivalent isolation technology.
@@ -20,16 +20,16 @@ A compatibility layer for
 is planned, allowing execution of/as [OP-TEE](https://www.op-tee.org/)
 compatible applets.
 
-<img src="https://github.com/f-secure-foundry/GoTEE/wiki/images/diagram.jpg" width="350">
+<img src="https://github.com/usbarmory/GoTEE/wiki/images/diagram.jpg" width="350">
 
 Documentation
 =============
 
 The main documentation, which includes a tutorial, can be found on the
-[project wiki](https://github.com/f-secure-foundry/GoTEE/wiki).
+[project wiki](https://github.com/usbarmory/GoTEE/wiki).
 
 The package API documentation can be found on
-[pkg.go.dev](https://pkg.go.dev/github.com/f-secure-foundry/GoTEE).
+[pkg.go.dev](https://pkg.go.dev/github.com/usbarmory/GoTEE).
 
 Supported hardware
 ==================
@@ -38,8 +38,8 @@ The following table summarizes currently supported SoCs and boards.
 
 | SoC           | Board                                                                                                                                                                                | SoC package                                                                   | Board package                                                                                          |
 |---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| NXP i.MX6ULZ  | [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)                                                                                                               | [imx6](https://github.com/f-secure-foundry/tamago/tree/master/soc/imx6)       | [usbarmory/mark-two](https://github.com/f-secure-foundry/tamago/tree/master/board/f-secure/usbarmory)  |
-| NXP i.MX6ULL  | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6](https://github.com/f-secure-foundry/tamago/tree/master/soc/imx6)       | [mx6ullevk](https://github.com/f-secure-foundry/tamago/tree/master/board/nxp/mx6ullevk)                |
+| NXP i.MX6ULZ  | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)                                                                                                               | [imx6](https://github.com/f-secure-foundry/tamago/tree/master/soc/imx6)       | [usbarmory/mark-two](https://github.com/f-secure-foundry/tamago/tree/master/board/f-secure/usbarmory)  |
+| NXP i.MX6ULL  | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6](https://github.com/usbarmory/tamago/tree/master/soc/imx6)       | [mx6ullevk](https://github.com/f-secure-foundry/tamago/tree/master/board/nxp/mx6ullevk)                |
 
 Example application
 ===================
@@ -47,7 +47,7 @@ Example application
 In TEE nomenclature, the privileged unikernel is commonly referred to as
 Trusted OS, while the unprivileged one represents a Trusted Applet.
 
-The GoTEE [example](https://github.com/f-secure-foundry/GoTEE-example)
+The GoTEE [example](https://github.com/usbarmory/GoTEE-example)
 demonstrate concurrent operation of Go unikernels acting as Trusted OS,
 Trusted Applet and Main OS.
 
@@ -56,11 +56,11 @@ Trusted Applet and Main OS.
 > which can be any bare metal application capable of running in user mode and
 > implementing GoTEE API, such as freestanding C or Rust programs.
 >
-> A Rust [example](https://github.com/f-secure-foundry/GoTEE-example/tree/master/trusted_applet_rust)
+> A Rust [example](https://github.com/usbarmory/GoTEE-example/tree/master/trusted_applet_rust)
 > can be used replacing `trusted_applet_go` with `trusted_applet_rust` when building.
 
 The example trusted OS/applet combination performs basic testing of concurrent
-execution of three [TamaGo](https://github.com/f-secure-foundry/tamago)
+execution of three [TamaGo](https://github.com/usbarmory/tamago)
 unikernels at different privilege levels:
 
  * Trusted OS, running in Secure World at privileged level (PL1, system mode)
@@ -73,13 +73,13 @@ The Trusted Applet sleeps for 5 seconds before attempting to read privileged OS
 memory, which triggers an exception handled by the supervisor which terminates
 the Trusted Applet.
 
-The GoTEE [syscall](https://github.com/f-secure-foundry/GoTEE/blob/master/syscall/syscall.go)
+The GoTEE [syscall](https://github.com/usbarmory/GoTEE/blob/master/syscall/syscall.go)
 interface is implemented for communication between the Trusted OS and Trusted
 Applet.
 
-When launched on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki),
+When launched on the [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki),
 the example application is reachable via SSH through
-[Ethernet over USB](https://github.com/f-secure-foundry/usbarmory/wiki/Host-communication)
+[Ethernet over USB](https://github.com/usbarmory/usbarmory/wiki/Host-communication)
 (ECM protocol, supported on Linux and macOS hosts):
 
 ```
@@ -110,7 +110,7 @@ twice to demonstrate behaviour before and after TrustZone restrictions are in
 effect using real hardware peripherals.
 
 Additionally the `linux` command can be used to spawn the
-[USB armory Debian base image](https://github.com/f-secure-foundry/usbarmory-debian-base_image)
+[USB armory Debian base image](https://github.com/usbarmory/usbarmory-debian-base_image)
 as Main OS in NonSecure World.
 
 > :warning: only USB armory Debian base image releases >= 20211129 are
@@ -119,11 +119,11 @@ as Main OS in NonSecure World.
 Compiling
 =========
 
-Build the [TamaGo compiler](https://github.com/f-secure-foundry/tamago-go)
-(or use the [latest binary release](https://github.com/f-secure-foundry/tamago-go/releases/latest)):
+Build the [TamaGo compiler](https://github.com/usbarmory/tamago-go)
+(or use the [latest binary release](https://github.com/usbarmory/tamago-go/releases/latest)):
 
 ```
-wget https://github.com/f-secure-foundry/tamago-go/archive/refs/tags/latest.zip
+wget https://github.com/usbarmory/tamago-go/archive/refs/tags/latest.zip
 unzip latest.zip
 cd tamago-go-latest/src && ./all.bash
 cd ../bin && export TAMAGO=`pwd`/go
@@ -132,7 +132,7 @@ cd ../bin && export TAMAGO=`pwd`/go
 Build the example trusted applet and kernel executables:
 
 ```
-git clone https://github.com/f-secure-foundry/GoTEE-example
+git clone https://github.com/usbarmory/GoTEE-example
 cd GoTEE-example && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
@@ -147,11 +147,11 @@ Executing and debugging
 Native hardware
 ---------------
 
-The PoC can be executed on the [USB armory Mk II](https://github.com/f-secure-foundry/usbarmory/wiki)
+The PoC can be executed on the [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)
 by loading the compilation output `bin/trusted_os.imx` in
-[SDP mode](https://github.com/f-secure-foundry/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
+[SDP mode](https://github.com/usbarmory/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
 
-![gotee](https://github.com/f-secure-foundry/GoTEE/wiki/images/gotee.png)
+![gotee](https://github.com/usbarmory/GoTEE/wiki/images/gotee.png)
 
 Emulated hardware
 -----------------

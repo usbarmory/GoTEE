@@ -12,10 +12,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/f-secure-foundry/GoTEE/syscall"
+	"github.com/usbarmory/GoTEE/syscall"
 
-	"github.com/f-secure-foundry/tamago/arm"
-	"github.com/f-secure-foundry/tamago/soc/imx6"
+	"github.com/usbarmory/tamago/arm"
+	"github.com/usbarmory/tamago/soc/imx6"
 )
 
 // SecureHandler is the default handler for supervisor (SVC) exceptions raised

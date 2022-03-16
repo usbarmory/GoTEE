@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"net/rpc/jsonrpc"
 
-	"github.com/f-secure-foundry/GoTEE/syscall"
+	"github.com/usbarmory/GoTEE/syscall"
 )
 
 // Read reads up to len(p) bytes into p. The read data is received from the

@@ -12,15 +12,15 @@
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
 // supported by the TamaGo framework for bare metal Go on ARM SoCs, see
-// https://github.com/f-secure-foundry/tamago.
+// https://github.com/usbarmory/tamago.
 package applet
 
 import (
 	_ "unsafe"
 
-	"github.com/f-secure-foundry/GoTEE/syscall"
+	"github.com/usbarmory/GoTEE/syscall"
 
-	"github.com/f-secure-foundry/tamago/arm"
+	"github.com/usbarmory/tamago/arm"
 )
 
 var ARM = &arm.CPU{}

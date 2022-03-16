@@ -9,7 +9,7 @@
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
 // supported by the TamaGo framework for bare metal Go on ARM SoCs, see
-// https://github.com/f-secure-foundry/tamago.
+// https://github.com/usbarmory/tamago.
 package monitor
 
 import (
@@ -19,11 +19,11 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/f-secure-foundry/tamago/arm"
-	"github.com/f-secure-foundry/tamago/dma"
-	"github.com/f-secure-foundry/tamago/soc/imx6"
-	"github.com/f-secure-foundry/tamago/soc/imx6/csu"
-	"github.com/f-secure-foundry/tamago/soc/imx6/tzasc"
+	"github.com/usbarmory/tamago/arm"
+	"github.com/usbarmory/tamago/dma"
+	"github.com/usbarmory/tamago/soc/imx6"
+	"github.com/usbarmory/tamago/soc/imx6/csu"
+	"github.com/usbarmory/tamago/soc/imx6/tzasc"
 )
 
 const (
