@@ -15,11 +15,6 @@ GoTEE can supervise pure Go, Rust or C based freestanding Trusted Applets,
 implementing the GoTEE API, as well as any operating system capable of running
 in TrustZone Normal World such as Linux.
 
-A compatibility layer for
-[libutee](https://optee.readthedocs.io/en/latest/architecture/libraries.html#libutee)
-is planned, allowing execution of/as [OP-TEE](https://www.op-tee.org/)
-compatible applets.
-
 <img src="https://github.com/usbarmory/GoTEE/wiki/images/diagram.jpg" width="350">
 
 Documentation
