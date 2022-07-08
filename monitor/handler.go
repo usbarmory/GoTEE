@@ -16,6 +16,7 @@ import (
 
 	"github.com/usbarmory/tamago/arm"
 	"github.com/usbarmory/tamago/soc/imx6"
+	"github.com/usbarmory/tamago/soc/imx6/imx6ul"
 )
 
 // SecureHandler is the default handler for supervisor (SVC) exceptions raised
@@ -25,7 +26,7 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 	case syscall.SYS_EXIT:
 		return errors.New("exit")
 	case syscall.SYS_WRITE:
-		imx6.UART2.Tx(byte(ctx.R1))
+		imx6ul.UART2.Tx(byte(ctx.R1))
 	case syscall.SYS_NANOTIME:
 		t := int64(imx6.ARM.TimerFn() * imx6.ARM.TimerMultiplier)
 		ctx.R0 = uint32(t & 0xffffffff)
