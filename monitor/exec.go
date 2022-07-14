@@ -22,7 +22,7 @@ import (
 	"github.com/usbarmory/tamago/arm"
 	"github.com/usbarmory/tamago/dma"
 	"github.com/usbarmory/tamago/soc/imx6"
-	"github.com/usbarmory/tamago/soc/imx6/csu"
+	"github.com/usbarmory/tamago/soc/imx6/imx6ul"
 	"github.com/usbarmory/tamago/soc/imx6/tzasc"
 )
 
@@ -31,17 +31,19 @@ const (
 	SystemMode = (0b111 << 6) | arm.SYS_MODE
 )
 
-var systemVectorTable = arm.SystemVectorTable()
+var (
+	systemVectorTable = arm.SystemVectorTable()
 
-var monitorVectorTable = arm.VectorTable{
-	Reset:         resetMonitor,
-	Undefined:     undefinedMonitor,
-	Supervisor:    supervisorMonitor,
-	PrefetchAbort: prefetchAbortMonitor,
-	DataAbort:     dataAbortMonitor,
-	IRQ:           irqMonitor,
-	FIQ:           fiqMonitor,
-}
+	monitorVectorTable = arm.VectorTable{
+		Reset:         resetMonitor,
+		Undefined:     undefinedMonitor,
+		Supervisor:    supervisorMonitor,
+		PrefetchAbort: prefetchAbortMonitor,
+		DataAbort:     dataAbortMonitor,
+		IRQ:           irqMonitor,
+		FIQ:           fiqMonitor,
+	}
+)
 
 var mux sync.Mutex
 
@@ -55,12 +57,15 @@ func irqMonitor()
 func fiqMonitor()
 
 func init() {
+	imx6ul.CSU.Init()
+	imx6ul.TZASC.Init()
+
 	if !imx6.Native {
 		return
 	}
 
 	// redundant enforcement of Region 0 (entire memory space) defaults
-	if err := tzasc.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
+	if err := imx6ul.TZASC.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
 		panic("could not set TZASC defaults")
 	}
 }
@@ -237,7 +242,7 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 
 	if ctx.ns && imx6.Native {
 		// allow NonSecure World R/W access to its own memory
-		if err = tzasc.EnableRegion(1, mem.Start, mem.Size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
+		if err = imx6ul.TZASC.EnableRegion(1, mem.Start, mem.Size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
 			return
 		}
 	}
@@ -253,9 +258,9 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 	}
 
 	// Cortex-A7 master needs CP15SDISABLE low for arm.set_ttbr0
-	if secure, lock, err := csu.GetAccess(0); !secure && !lock && err == nil {
-		csu.SetAccess(0, true, false)
-		defer csu.SetAccess(0, false, false)
+	if secure, lock, err := imx6ul.CSU.GetAccess(0); !secure && !lock && err == nil {
+		imx6ul.CSU.SetAccess(0, true, false)
+		defer imx6ul.CSU.SetAccess(0, false, false)
 	}
 
 	imx6.ARM.ConfigureMMU(mem.Start, mem.Start+uint32(mem.Size), memAttr)
