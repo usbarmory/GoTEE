@@ -7,12 +7,12 @@
 // Package syscall provides support for system call for TamaGo unikernels
 // launched in user mode through monitor.Exec (see monitor package).
 //
-// This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
-// supported by the TamaGo framework for bare metal Go on ARM SoCs, see
+// This package is only meant to be used with `GOOS=tamago` as supported by the
+// TamaGo framework for bare metal Go on ARM/RISC-V SoCs, see
 // https://github.com/usbarmory/tamago.
 package syscall
 
-// defined in syscall.s
+// defined in syscall_*.s
 
 // Supervisors triggers a supervisor call (SWI/SVC).
 func Supervisor()

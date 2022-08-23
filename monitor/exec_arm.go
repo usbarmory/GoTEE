@@ -21,9 +21,8 @@ import (
 
 	"github.com/usbarmory/tamago/arm"
 	"github.com/usbarmory/tamago/dma"
-	"github.com/usbarmory/tamago/soc/imx6"
-	"github.com/usbarmory/tamago/soc/imx6/imx6ul"
-	"github.com/usbarmory/tamago/soc/imx6/tzasc"
+	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
+	"github.com/usbarmory/tamago/arm/tzc380"
 )
 
 const (
@@ -47,7 +46,7 @@ var (
 
 var mux sync.Mutex
 
-// defined in exec.s
+// defined in exec_arm.s
 func resetMonitor()
 func undefinedMonitor()
 func supervisorMonitor()
@@ -60,12 +59,12 @@ func init() {
 	imx6ul.CSU.Init()
 	imx6ul.TZASC.Init()
 
-	if !imx6.Native {
+	if !imx6ul.Native {
 		return
 	}
 
 	// redundant enforcement of Region 0 (entire memory space) defaults
-	if err := imx6ul.TZASC.EnableRegion(0, 0, 0, (1<<tzasc.SP_SW_RD)|(1<<tzasc.SP_SW_WR)); err != nil {
+	if err := imx6ul.TZASC.EnableRegion(0, 0, 0, (1<<tzc380.SP_SW_RD)|(1<<tzc380.SP_SW_WR)); err != nil {
 		panic("could not set TZASC defaults")
 	}
 }
@@ -240,9 +239,9 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
-	if ctx.ns && imx6.Native {
+	if ctx.ns && imx6ul.Native {
 		// allow NonSecure World R/W access to its own memory
-		if err = imx6ul.TZASC.EnableRegion(1, mem.Start, mem.Size, (1<<tzasc.SP_NW_RD)|(1<<tzasc.SP_NW_WR)); err != nil {
+		if err = imx6ul.TZASC.EnableRegion(1, mem.Start(), mem.Size(), (1<<tzc380.SP_NW_RD)|(1<<tzc380.SP_NW_WR)); err != nil {
 			return
 		}
 	}
@@ -263,7 +262,7 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 		defer imx6ul.CSU.SetAccess(0, false, false)
 	}
 
-	imx6.ARM.ConfigureMMU(mem.Start, mem.Start+uint32(mem.Size), memAttr)
+	imx6ul.ARM.ConfigureMMU(mem.Start(), mem.Start()+mem.Size(), memAttr)
 
 	return
 }

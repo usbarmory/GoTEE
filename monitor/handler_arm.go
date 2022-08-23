@@ -11,12 +11,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/usbarmory/GoTEE/syscall"
 
 	"github.com/usbarmory/tamago/arm"
-	"github.com/usbarmory/tamago/soc/imx6"
-	"github.com/usbarmory/tamago/soc/imx6/imx6ul"
 )
 
 // SecureHandler is the default handler for supervisor (SVC) exceptions raised
@@ -26,16 +25,16 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 	case syscall.SYS_EXIT:
 		return errors.New("exit")
 	case syscall.SYS_WRITE:
-		imx6ul.UART2.Tx(byte(ctx.R1))
+		print(string(ctx.R1))
 	case syscall.SYS_NANOTIME:
-		t := int64(imx6.ARM.TimerFn() * imx6.ARM.TimerMultiplier)
+		t := time.Now().UnixNano()
 		ctx.R0 = uint32(t & 0xffffffff)
 		ctx.R1 = uint32(t >> 32)
 	case syscall.SYS_GETRANDOM:
-		off := int(ctx.R1 - ctx.Memory.Start)
+		off := ctx.R1 - ctx.Memory.Start()
 		buf := make([]byte, ctx.R2)
 
-		if !(off >= 0 && off < (ctx.Memory.Size-len(buf))) {
+		if !(off >= 0 && off < (ctx.Memory.Size()-uint32(len(buf)))) {
 			return errors.New("invalid read offset")
 		}
 
@@ -43,7 +42,7 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 			return errors.New("internal error")
 		}
 
-		ctx.Memory.Write(ctx.Memory.Start, off, buf)
+		ctx.Memory.Write(ctx.Memory.Start(), int(off), buf)
 	case syscall.SYS_RPC_REQ, syscall.SYS_RPC_RES:
 		if ctx.Server != nil {
 			err = ctx.rpc()
