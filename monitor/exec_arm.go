@@ -20,9 +20,9 @@ import (
 	"sync"
 
 	"github.com/usbarmory/tamago/arm"
+	"github.com/usbarmory/tamago/arm/tzc380"
 	"github.com/usbarmory/tamago/dma"
 	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
-	"github.com/usbarmory/tamago/arm/tzc380"
 )
 
 const (
@@ -81,22 +81,22 @@ func Exec(ctx *ExecCtx)
 
 // ExecCtx represents a executable initialization or returning state.
 type ExecCtx struct {
-	R0   uint32
-	R1   uint32
-	R2   uint32
-	R3   uint32
-	R4   uint32
-	R5   uint32
-	R6   uint32
-	R7   uint32
-	R8   uint32
-	R9   uint32
-	R10  uint32
-	R11  uint32
-	R12  uint32
-	R13  uint32 // SP
-	R14  uint32 // LR
-	R15  uint32 // PC
+	R0  uint32
+	R1  uint32
+	R2  uint32
+	R3  uint32
+	R4  uint32
+	R5  uint32
+	R6  uint32
+	R7  uint32
+	R8  uint32
+	R9  uint32
+	R10 uint32
+	R11 uint32
+	R12 uint32
+	R13 uint32 // SP
+	R14 uint32 // LR
+	R15 uint32 // PC
 
 	// CPSR is the Current Program Status Register of the handler which
 	// caught the exception raised by the execution context.
