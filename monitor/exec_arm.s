@@ -22,7 +22,7 @@
 // With respect to TrustZone the handler must save and restore the following
 // registers between Secure <> NonSecure World switches:
 //
-//  • r0-r15, CPSR of System/User/Supervisor modes:
+//  • r0-r15, CPSR of Supervisor, System/User modes:
 //
 //    TamaGo (and therefore GoTEE) does not use Supervisor mode, System/User
 //    mode share the same register banks.

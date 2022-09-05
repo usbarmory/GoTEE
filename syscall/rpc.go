@@ -13,9 +13,9 @@ import (
 )
 
 // Stream implements a data stream interface to exchange data buffers between
-// user and supervisor mode over syscalls.
+// the security monitor and a lower privilege execution context over syscalls.
 //
-// It is used by NewClient() to stream JSON-RPC calls from user mode and
+// It is used by NewClient() to stream JSON-RPC calls from an applet and
 // receive responses from the supervisor, over syscalls.
 //
 // The implementation is not safe against concurrent reads and writes, which

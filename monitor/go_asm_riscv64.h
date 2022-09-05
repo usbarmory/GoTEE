@@ -12,6 +12,7 @@
 #define mstatus  0x300
 #define mscratch 0x340
 #define mepc     0x341
+#define mcause   0x342
 
 #define CSRW(RS,CSR) WORD $(0x1073 + RS<<15 + CSR<<20)
 #define CSRR(CSR,RD) WORD $(0x2073 + RD<<7 + CSR<<20)

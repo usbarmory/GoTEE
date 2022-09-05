@@ -5,7 +5,7 @@
 // that can be found in the LICENSE file.
 
 // Package syscall provides support for system call for TamaGo unikernels
-// launched in user mode through monitor.Exec (see monitor package).
+// launched in supervised mode through monitor.Exec (see monitor package).
 //
 // This package is only meant to be used with `GOOS=tamago` as supported by the
 // TamaGo framework for bare metal Go on ARM/RISC-V SoCs, see
@@ -17,20 +17,20 @@ package syscall
 // Supervisors triggers a supervisor call (SWI/SVC).
 func Supervisor()
 
-// Exit terminates the user mode executable scheduling through a system call to
-// the supervisor. It can only be executed when running in user mode.
+// Exit terminates the execution context scheduling through a system call to
+// the supervisor.
 func Exit()
 
 // Print prints a single character on standard output through a system call to
-// the supervisor. It can only be executed when running in user mode.
+// the supervisor.
 func Print(c byte)
 
 // Nanotime returns the system time in nanoseconds through a system call to the
-// supervisor. It can only be executed when running in user mode.
+// supervisor.
 func Nanotime() int64
 
 // GetRandom fills a byte array with random values through a system call to the
-// supervisor. It can only be executed when running in user mode.
+// supervisor.
 func GetRandom(b []byte, n uint) {
 	Write(SYS_GETRANDOM, b, n)
 }

@@ -4,15 +4,6 @@
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
 
-// Package applet provides user mode initialization for bare metal Go
-// unikernels written using the TamaGo framework.
-//
-// The package supports trusted applet execution under a GoTEE compatible
-// supervisor, linking essential runtime functions with required system calls.
-//
-// This package is only meant to be used with `GOOS=tamago GOARCH=arm` as
-// supported by the TamaGo framework for bare metal Go on ARM SoCs, see
-// https://github.com/usbarmory/tamago.
 package applet
 
 import (
@@ -28,7 +19,7 @@ func printk(c byte) {
 
 //go:linkname initRNG runtime.initRNG
 func initRNG() {
-	// no initialization required in user mode
+	// no initialization required in supervised mode
 }
 
 //go:linkname getRandomData runtime.getRandomData

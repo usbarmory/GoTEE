@@ -134,7 +134,7 @@ type ExecCtx struct {
 	buf []byte
 }
 
-// Print logs the execution context user registers.
+// Print logs the execution context registers.
 func (ctx *ExecCtx) Print() {
 	cpsr, spsr := ctx.Mode()
 
