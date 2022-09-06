@@ -17,8 +17,8 @@ import (
 // Read reads up to len(p) bytes into p. The read data is received from the
 // execution context memory, after it is being written with syscall.Write().
 func (ctx *ExecCtx) Read(p []byte) (n int, err error) {
-	off := uint32(ctx.X11) - ctx.Memory.Start()
-	n = int(ctx.X12)
+	off := ctx.A1() - ctx.Memory.Start()
+	n = int(ctx.A2())
 	s := len(p)
 
 	if s < n {
@@ -48,12 +48,12 @@ func (ctx *ExecCtx) Close() error {
 }
 
 func (ctx *ExecCtx) rpc() (err error) {
-	switch num := ctx.X10; num {
+	switch num := ctx.A0(); num {
 	case syscall.SYS_RPC_REQ:
 		err = ctx.Server.ServeRequest(jsonrpc.NewServerCodec(ctx))
 	case syscall.SYS_RPC_RES:
-		off := uint32(ctx.X11) - ctx.Memory.Start()
-		n := int(ctx.X12)
+		off := ctx.A1() - ctx.Memory.Start()
+		n := int(ctx.A2())
 		s := len(ctx.buf)
 
 		if s > n {
@@ -65,12 +65,12 @@ func (ctx *ExecCtx) rpc() (err error) {
 		}
 
 		ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf)
-		ctx.X12 = uint64(s)
+		ctx.Ret(s)
 		ctx.buf = nil
 
 		return
 	default:
-		err = fmt.Errorf("invalid syscall %d", num)
+		return fmt.Errorf("invalid syscall %d", num)
 	}
 
 	return

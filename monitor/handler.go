@@ -16,25 +16,25 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
-// SecureHandler is the default handler for supervisor (SVC) exceptions raised
-// by a secure execution context to handle supported GoTEE system calls.
+// SecureHandler is the default handler for exceptions raised by a secure
+// execution context to handle supported GoTEE system calls.
 func SecureHandler(ctx *ExecCtx) (err error) {
-	switch num := ctx.X10; num {
+	switch num := ctx.A0(); num {
 	case syscall.SYS_EXIT:
 		return errors.New("exit")
 	case syscall.SYS_WRITE:
-		print(string(ctx.X11))
+		print(string(ctx.A1()))
 	case syscall.SYS_NANOTIME:
-		ctx.X10 = uint64(time.Now().UnixNano())
+		ctx.Ret(time.Now().UnixNano())
 	case syscall.SYS_GETRANDOM:
-		off := ctx.X11 - uint64(ctx.Memory.Start())
-		buf := make([]byte, ctx.X12)
+		off := ctx.A1() - ctx.Memory.Start()
+		buf := make([]byte, ctx.A2())
 
-		if !(off >= 0 && off < (uint64(ctx.Memory.Size())-uint64(len(buf)))) {
+		if !(off >= 0 && off < (ctx.Memory.Size()-uint32(len(buf)))) {
 			return errors.New("invalid read offset")
 		}
 
-		if n, err := rand.Read(buf); err != nil || n != int(ctx.X12) {
+		if n, err := rand.Read(buf); err != nil || n != int(ctx.A2()) {
 			return errors.New("internal error")
 		}
 
@@ -50,10 +50,10 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 	return
 }
 
-// NonSecureHandler is the default handler for environment-call-from-S-mode
-// exceptions (ECALL) raised by a non-secure execution context to handle
-// supported GoTEE secure monitor calls.
+// NonSecureHandler is the default handler for exceptions raised by a
+// non-secure execution context to handle supported GoTEE secure monitor calls.
 func NonSecureHandler(ctx *ExecCtx) (err error) {
-	log.Printf("TODO: Secure <> NonSecure API")
+	// to be overridden by application
+	log.Printf("NonSeureHandler: unimplemented")
 	return
 }

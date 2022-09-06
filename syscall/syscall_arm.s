@@ -57,6 +57,6 @@ TEXT ·Read(SB),$0-24
 
 	SWI	$0
 
-	MOVW	R2, ret+20(FP)
+	MOVW	R0, ret+20(FP)
 
 	RET

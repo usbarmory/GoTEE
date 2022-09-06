@@ -56,6 +56,6 @@ TEXT ·Read(SB),$0-48
 
 	ECALL
 
-	MOV	A2, ret+40(FP)
+	MOV	A0, ret+40(FP)
 
 	RET
