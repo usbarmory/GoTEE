@@ -100,6 +100,9 @@ type ExecCtx struct {
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
 
+	// PMP, if not nil, handles physical memory protection
+	PMP func(ctx *ExecCtx) error
+
 	// Handler, if not nil, handles syscalls
 	Handler func(ctx *ExecCtx) error
 
@@ -151,6 +154,13 @@ func (ctx *ExecCtx) schedule() (err error) {
 
 	// set monitor handlers
 	fu540.RV64.SetExceptionHandler(monitor)
+
+	if ctx.PMP != nil {
+		// set up physical memory protection
+		if err = ctx.PMP(ctx); err != nil {
+			return
+		}
+	}
 
 	// execute applet
 	Exec(ctx)
