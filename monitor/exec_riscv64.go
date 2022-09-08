@@ -27,7 +27,7 @@ import (
 // RISC-V privilege levels
 const (
 	User       = 0b00 // U
-	Supervisor = 0b11 // S
+	Supervisor = 0b01 // S
 	Machine    = 0b11 // M
 )
 
@@ -100,8 +100,13 @@ type ExecCtx struct {
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
 
-	// PMP, if not nil, handles physical memory protection
-	PMP func(ctx *ExecCtx) error
+	// PMP, if not nil, handles physical memory protection for the
+	// environment invoking the execution context.
+	//
+	// The integer argument is passed as first available PMP entry, the PMP
+	// function must not modify previous entries as they are used at
+	// scheduling to grant execution context access to its own memory.
+	PMP func(ctx *ExecCtx, pmpEntry int) error
 
 	// Handler, if not nil, handles syscalls
 	Handler func(ctx *ExecCtx) error
@@ -149,15 +154,22 @@ func (ctx *ExecCtx) Cause() (code uint64, irq bool) {
 }
 
 func (ctx *ExecCtx) schedule() (err error) {
+	var pmpEntry int
+
 	mux.Lock()
 	defer mux.Unlock()
 
 	// set monitor handlers
 	fu540.RV64.SetExceptionHandler(monitor)
 
+	// grant execution context access to its own memory
+	if pmpEntry, err = ctx.pmp(); err != nil {
+		return
+	}
+
 	if ctx.PMP != nil {
-		// set up physical memory protection
-		if err = ctx.PMP(ctx); err != nil {
+		// set up application physical memory protection
+		if err = ctx.PMP(ctx, pmpEntry); err != nil {
 			return
 		}
 	}
@@ -222,6 +234,21 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 	} else {
 		ctx.Handler = NonSecureHandler
 	}
+
+	return
+}
+
+// pmp grants context access to its own memory.
+func (ctx *ExecCtx) pmp() (pmpEntry int, err error) {
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.Start()), true, true, true, riscv.PMP_CFG_A_OFF, false); err != nil {
+		return
+	}
+	pmpEntry += 1
+
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.End()), true, true, true, riscv.PMP_CFG_A_TOR, false); err != nil {
+		return
+	}
+	pmpEntry += 1
 
 	return
 }

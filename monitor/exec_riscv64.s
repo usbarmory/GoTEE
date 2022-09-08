@@ -77,7 +77,7 @@ TEXT ·Exec(SB),$0-8
 	CSRW(t0, mscratch)
 
 	// switch to supervisor mode
-	MOV	$(0b01 << 11), T1
+	MOV	$const_Supervisor << 11, T1
 	CSRS(t1, mstatus)
 
 	// restore floating-point registers
