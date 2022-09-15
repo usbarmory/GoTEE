@@ -63,8 +63,10 @@ func init() {
 		return
 	}
 
+	tzcAttr := (1 << tzc380.SP_SW_RD) | (1 << tzc380.SP_SW_WR)
+
 	// redundant enforcement of Region 0 (entire memory space) defaults
-	if err := imx6ul.TZASC.EnableRegion(0, 0, 0, (1<<tzc380.SP_SW_RD)|(1<<tzc380.SP_SW_WR)); err != nil {
+	if err := imx6ul.TZASC.EnableRegion(0, 0, 0, tzcAttr); err != nil {
 		panic("could not set TZASC defaults")
 	}
 }
@@ -217,9 +219,9 @@ func (ctx *ExecCtx) Run() (err error) {
 // In case of a non-secure execution context, the memory is configured as
 // NonSecure by means of MMU NS bit and memory controller region configuration.
 // Any additional peripheral restrictions are up to the caller.
-func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
+func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	ctx = &ExecCtx{
-		R15:    entry,
+		R15:    uint32(entry),
 		VFP:    make([]uint64, 32),
 		Memory: mem,
 		Server: rpc.NewServer(),
@@ -237,11 +239,12 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 		ctx.Handler = NonSecureHandler
 	}
 
+	tzcAttr := (1 << tzc380.SP_NW_RD) | (1 << tzc380.SP_NW_WR)
 	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
 	if ctx.ns && imx6ul.Native {
 		// allow NonSecure World R/W access to its own memory
-		if err = imx6ul.TZASC.EnableRegion(1, mem.Start(), mem.Size(), (1<<tzc380.SP_NW_RD)|(1<<tzc380.SP_NW_WR)); err != nil {
+		if err = imx6ul.TZASC.EnableRegion(1, uint32(mem.Start()), uint32(mem.End()), tzcAttr); err != nil {
 			return
 		}
 	}
@@ -262,7 +265,7 @@ func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) 
 		defer imx6ul.CSU.SetAccess(0, false, false)
 	}
 
-	imx6ul.ARM.ConfigureMMU(mem.Start(), mem.End(), memAttr)
+	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), memAttr)
 
 	return
 }

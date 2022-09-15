@@ -8,20 +8,20 @@ package monitor
 
 // A0 returns the register treated as first argument for GoTEE secure monitor
 // calls.
-func (ctx *ExecCtx) A0() uint32 {
-	return uint32(ctx.X10)
+func (ctx *ExecCtx) A0() uint {
+	return uint(ctx.X10)
 }
 
 // A1 returns the register treated as second argument for GoTEE secure monitor
 // calls.
-func (ctx *ExecCtx) A1() uint32 {
-	return uint32(ctx.X11)
+func (ctx *ExecCtx) A1() uint {
+	return uint(ctx.X11)
 }
 
 // A2 returns the register treated as third argument for GoTEE secure monitor
 // calls.
-func (ctx *ExecCtx) A2() uint32 {
-	return uint32(ctx.X12)
+func (ctx *ExecCtx) A2() uint {
+	return uint(ctx.X12)
 }
 
 // Ret sets the return value for GoTEE secure monitor calls.
@@ -29,6 +29,8 @@ func (ctx *ExecCtx) Ret(val interface{}) {
 	switch v := val.(type) {
 	case uint64:
 		ctx.X10 = v
+	case uint:
+		ctx.X10 = uint64(v)
 	case int64:
 		ctx.X10 = uint64(v)
 	case int:

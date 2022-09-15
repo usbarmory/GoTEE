@@ -30,7 +30,7 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 		off := ctx.A1() - ctx.Memory.Start()
 		buf := make([]byte, ctx.A2())
 
-		if !(off >= 0 && off < (ctx.Memory.Size()-uint32(len(buf)))) {
+		if !(off >= 0 && off < (ctx.Memory.Size()-uint(len(buf)))) {
 			return errors.New("invalid read offset")
 		}
 

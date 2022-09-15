@@ -20,8 +20,8 @@ import (
 	"sync"
 
 	"github.com/usbarmory/tamago/dma"
-	"github.com/usbarmory/tamago/soc/sifive/fu540"
 	"github.com/usbarmory/tamago/riscv"
+	"github.com/usbarmory/tamago/soc/sifive/fu540"
 )
 
 // RISC-V privilege levels
@@ -37,7 +37,7 @@ var mux sync.Mutex
 func monitor()
 
 func init() {
-	if err := fu540.RV64.WritePMP(0, (1 << 64) - 1, true, true, true, riscv.PMP_CFG_A_TOR, false); err != nil {
+	if err := fu540.RV64.WritePMP(0, (1<<64)-1, true, true, true, riscv.PMP_CFG_A_TOR, false); err != nil {
 		panic("could not set PMP default entry")
 	}
 }
@@ -88,7 +88,7 @@ type ExecCtx struct {
 	// Program Counter
 	PC uint64
 	// Machine Exception Program Counter
-	MEPC   uint64
+	MEPC uint64
 	// Machine Cause
 	MCAUSE uint64
 
@@ -221,7 +221,7 @@ func (ctx *ExecCtx) Run() (err error) {
 // and memory region.
 //
 // Any additional peripheral restrictions are up to the caller.
-func Load(entry uint32, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
+func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	ctx = &ExecCtx{
 		PC:     uint64(entry),
 		Memory: mem,
