@@ -37,7 +37,7 @@ var mux sync.Mutex
 func monitor()
 
 func init() {
-	if err := fu540.RV64.WritePMP(0, (1<<64)-1, true, true, true, riscv.PMP_CFG_A_TOR, false); err != nil {
+	if err := fu540.RV64.WritePMP(0, (1<<64)-1, true, true, true, riscv.PMP_A_TOR, false); err != nil {
 		panic("could not set PMP default entry")
 	}
 }
@@ -240,12 +240,12 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 
 // pmp grants context access to its own memory.
 func (ctx *ExecCtx) pmp() (pmpEntry int, err error) {
-	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.Start()), true, true, true, riscv.PMP_CFG_A_OFF, false); err != nil {
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.Start()), false, false, false, riscv.PMP_A_OFF, false); err != nil {
 		return
 	}
 	pmpEntry += 1
 
-	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.End()), true, true, true, riscv.PMP_CFG_A_TOR, false); err != nil {
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.End()), true, true, true, riscv.PMP_A_TOR, false); err != nil {
 		return
 	}
 	pmpEntry += 1
