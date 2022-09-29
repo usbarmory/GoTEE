@@ -6,14 +6,15 @@ The [GoTEE](https://github.com/usbarmory/GoTEE) framework implements concurrent 
 privileged and unprivileged modes, interacting with each other through monitor
 mode and custom system calls.
 
-With these capabilities GoTEE implements a [TamaGo](https://github.com/usbarmory/tamago)
-based Trusted Execution Environments (TEE), bringing Go memory safety,
-convenience and capabilities to bare metal execution within TrustZone Secure
-World or equivalent isolation technology.
+With these capabilities GoTEE implements a
+[TamaGo](https://github.com/usbarmory/tamago) based Trusted Execution
+Environments (TEE), bringing Go memory safety, convenience and capabilities to
+bare metal execution within ARM TrustZone Secure World or RISC-V Supervisor
+Execution Environments.
 
 GoTEE can supervise pure Go, Rust or C based freestanding Trusted Applets,
 implementing the GoTEE API, as well as any operating system capable of running
-in TrustZone Normal World such as Linux.
+in ARM TrustZone Normal World or RISC-V S-mode such as Linux.
 
 <img src="https://github.com/usbarmory/GoTEE/wiki/images/diagram.jpg" width="350">
 
@@ -31,10 +32,11 @@ Supported hardware
 
 The following table summarizes currently supported SoCs and boards.
 
-| SoC           | Board                                                                                                                                                                                | SoC package                                                              | Board package                                                                    |
-|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| NXP i.MX6ULZ  | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)                                                                                                                      | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul) | [usbarmory/mk2](https://github.com/usbarmory/tamago/tree/master/board/usbarmory) |
-| NXP i.MX6ULL  | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul) | [mx6ullevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/mx6ullevk) |
+| SoC          | Board                                                                                                                                                                                | SoC package                                                               | Board package                                                                        |
+|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| NXP i.MX6ULZ | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)                                                                                                                      | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [usbarmory/mk2](https://github.com/usbarmory/tamago/tree/master/board/usbarmory)     |
+| NXP i.MX6ULL | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [mx6ullevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/mx6ullevk)     |
+| SiFive FU540 | [QEMU sifive_u](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)                                                                                                         | [fu540](https://github.com/usbarmory/tamago/tree/master/soc/sifive/fu540) | [qemu/sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u) |
 
 Example application
 ===================
@@ -58,13 +60,13 @@ The example trusted OS/applet combination performs basic testing of concurrent
 execution of three [TamaGo](https://github.com/usbarmory/tamago)
 unikernels at different privilege levels:
 
- * Trusted OS, running in Secure World at privileged level (PL1, system mode)
- * Trusted Applet, running in Secure World at unprivileged level (PL0, user mode)
- * Main OS, running in Normal World at privileged level (PL1, system mode)
+ * Trusted OS (ARM: TZ Secure World system mode, RISC-V: M-mode)
+ * Trusted Applet (ARM: TZ Secure World user mode, RISC-V: S-mode)
+ * Main OS (ARM: TZ Normal World system mode, RISC-V: S-mode)
 
 The Main OS yields back with a monitor call.
 
-The Trusted Applet sleeps for 5 seconds before attempting to read privileged OS
+The Trusted Applet sleeps for 5 seconds before attempting to read Trusted OS
 memory, which triggers an exception handled by the supervisor which terminates
 the Trusted Applet.
 
@@ -79,14 +81,14 @@ the example application is reachable via SSH through
 
 ```
 $ ssh gotee@10.0.0.1
-PL1 tamago/arm (go1.16.5) • TEE system/monitor (Secure World)
+tamago/arm • TEE security monitor (Secure World system/monitor)
 
   help                                   # this help
   reboot                                 # reset the SoC/board
   stack                                  # stack trace of current goroutine
   stackall                               # stack trace of all goroutines
-  md  <hex offset> <size>                # memory display (use with caution)
-  mw  <hex offset> <hex value>           # memory write   (use with caution)
+  peek <hex offset> <size>               # memory display (use with caution)
+  poke <hex offset> <hex value>          # memory write   (use with caution)
 
   gotee                                  # TrustZone example w/ TamaGo unikernels
   linux <uSD|eMMC>                       # boot NonSecure USB armory Debian base image
@@ -111,8 +113,50 @@ as Non-secure main OS.
 > :warning: only USB armory Debian base image releases >= 20211129 are
 > supported for Non-secure operation.
 
-Compiling
-=========
+![gotee](https://github.com/usbarmory/GoTEE/wiki/images/gotee.png)
+
+The example can be also executed under QEMU emulation.
+
+> :warning: emulated runs perform partial tests due to lack of full
+> TrustZone/PMP support by QEMU.
+
+```
+make qemu
+...
+00:00:00 tamago/arm • TEE security monitor (Secure World system/monitor)
+00:00:00 SM loaded applet addr:0x9c000000 entry:0x9c072740 size:4940275
+00:00:00 SM loaded kernel addr:0x80000000 entry:0x8007100c size:4577643
+00:00:00 SM waiting for applet and kernel
+00:00:00 SM starting mode:USR sp:0x9e000000 pc:0x9c072740 ns:false
+00:00:00 SM starting mode:SYS sp:0x00000000 pc:0x8007100c ns:true
+00:00:00 tamago/arm (go1.19.1) • TEE user applet
+00:00:00 tamago/arm (go1.19.1) • system/supervisor (Non-secure)
+00:00:00 supervisor is about to yield back
+00:00:00    r0:00000000  r1:814243f0  r2:00000001  r3:00000000
+00:00:00    r4:00000000  r5:00000000  r6:00000000  r7:8146bf14
+00:00:00    r8:00000007  r9:0000002b r10:814020f0 r11:80302b01 cpsr:600001d6 (MON)
+00:00:00   r12:00000073  sp:8146bf54  lr:801937a4  pc:80193884 spsr:600001df (SYS)
+00:00:00 SM stopped mode:SYS sp:0x8146bf54 lr:0x801937a4 pc:0x80193884 ns:true err:exit
+00:00:00 applet obtained 16 random bytes from monitor: b4cc4764dd30291a52545b182313003c
+00:00:00 applet requests echo via RPC: hello
+00:00:00 applet received echo via RPC: hello
+00:00:00 applet will sleep for 5 seconds
+00:00:01 SM says 1 missisipi
+00:00:01 applet says 1 missisipi
+...
+00:00:05 SM says 5 missisipi
+00:00:05 applet says 5 missisipi
+00:00:05 applet is about to read secure memory at 0x98010000
+00:00:05    r0:98010000  r1:9c8240c0  r2:98010000  r3:00000000
+00:00:05    r4:00000000  r5:00000000  r6:00000000  r7:9c86bec8
+00:00:05    r8:00000007  r9:0000003d r10:9c8020f0 r11:9c342f41 cpsr:600001d7 (ABT)
+00:00:05   r12:00000061  sp:9c86bf08  lr:9c1b1be8  pc:9c011330 spsr:600001d0 (USR)
+00:00:05 SM stopped mode:USR sp:0x9c86bf08 lr:0x9c1b1be8 pc:0x9c011330 ns:false err:ABT
+00:00:05 SM says goodbye
+```
+
+Building the compiler
+=====================
 
 Build the [TamaGo compiler](https://github.com/usbarmory/tamago-go)
 (or use the [latest binary release](https://github.com/usbarmory/tamago-go/releases/latest)):
@@ -124,86 +168,54 @@ cd tamago-go-latest/src && ./all.bash
 cd ../bin && export TAMAGO=`pwd`/go
 ```
 
-Build the example trusted applet and kernel executables:
+Building and executing on ARM targets
+=====================================
+
+Build the example trusted applet and kernel executables as follows:
 
 ```
 git clone https://github.com/usbarmory/GoTEE-example
-cd GoTEE-example && make nonsecure_os_go && make trusted_applet_go && make trusted_os
+cd GoTEE-example && export TARGET=usbarmory && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
 > :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
 > TA example, this requires Rust nightly and the `armv7a-none-eabi` toolchain.
 
-All compilation outputs are written under a `bin` subdirectory.
+Final executables are created in the `bin` subdirectory,
+`trusted_os_usbarmory.imx` should be used for native execution.
 
-Executing and debugging
-=======================
+The following targets are available:
 
-Native hardware
----------------
+| `TARGET`    | Board            | Executing and debugging                                                                                  |
+|-------------|------------------|----------------------------------------------------------------------------------------------------------|
+| `usbarmory` | USB armory Mk II | [usbarmory](https://github.com/usbarmory/tamago/tree/master/board/usbarmory#executing-and-debugging)     |
 
-The PoC can be executed on the [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)
-by loading the compilation output `bin/trusted_os.imx` in
-[SDP mode](https://github.com/usbarmory/usbarmory/wiki/Boot-Modes-(Mk-II)#serial-download-protocol-sdp).
+The targets support native (see relevant documentation links in the table above)
+as well as emulated execution (e.g. `make qemu`).
 
-![gotee](https://github.com/usbarmory/GoTEE/wiki/images/gotee.png)
+Building and executing on RISC-V targets
+========================================
 
-Emulated hardware
------------------
-
-An emulated run of the previously compiled executables under QEMU can be
-executed as follows:
+Build the example trusted applet and kernel executables as follows:
 
 ```
-make qemu
-...
-00:00:00 PL1 tamago/arm (go1.17.1) • TEE system/monitor (Secure World)
-00:00:00 PL1 loaded applet addr:0x94000000 size:4093296 entry:0x9406e3a4
-00:00:00 PL1 loaded kernel addr:0x80000000 size:3715053 entry:0x8006cd34
-00:00:00 PL1 waiting for applet and kernel
-00:00:00 PL1 starting mode:USR ns:false sp:0x96000000 pc:0x9406e3a4
-00:00:00 PL1 starting mode:SYS ns:true sp:0x00000000 pc:0x8006cd34
-00:00:00 PL1 tamago/arm (go1.17.1) • system/supervisor (Normal World)
-00:00:00 PL1 in Normal World is about to yield back
-00:00:00    r0:00000000  r1:814223f0  r2:00000001  r3:00000000
-00:00:00    r4:00000000  r5:00000000  r6:00000000  r7:00000000
-00:00:00    r8:00000007  r9:00000034 r10:814000f0 r11:802885a9 cpsr:600001d6 (MON)
-00:00:00   r12:00000000  sp:81441f88  lr:80146ac8  pc:801444c0 spsr:600000df (SYS)
-00:00:00 PL1 stopped mode:SYS ns:true sp:0x81441f88 lr:0x80146ac8 pc:0x801444c0 err:exit
-00:00:00 PL0 tamago/arm (go1.17.1) • TEE user applet (Secure World)
-00:00:00 PL0 obtained 16 random bytes from PL1: 431ad651c0c8fb66f929df143eed6411
-00:00:00 PL0 requests echo via RPC: hello
-00:00:00 PL0 received echo via RPC: hello
-00:00:00 PL0 will sleep for 5 seconds
-00:00:01 PL1 says 1 missisipi
-00:00:01 PL0 says 1 missisipi
-...
-00:00:05 PL1 says 5 missisipi
-00:00:05 PL0 says 5 missisipi
-00:00:05 PL0 is about to read PL1 Secure World memory at 0x90010000
-00:00:05    r0:90010000  r1:948220c0  r2:90010000  r3:00000000
-00:00:05    r4:00000000  r5:00000000  r6:00000000  r7:00000000
-00:00:05    r8:00000007  r9:00000044 r10:948000f0 r11:942cba81 cpsr:600001d7 (ABT)
-00:00:05   r12:00000000  sp:9484ff04  lr:94168868  pc:9401132c spsr:600000d0 (USR)
-00:00:05 PL1 stopped mode:USR ns:false sp:0x9484ff04 lr:0x94168868 pc:0x9401132c err:ABT
-00:00:05 PL1 says goodbye
+git clone https://github.com/usbarmory/GoTEE-example
+cd GoTEE-example && export TARGET=sifive_u && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
-> :warning: the emulated run performs partial tests due to lack of full
-> TrustZone support by QEMU.
+> :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
+> TA example, this requires Rust nightly and the `riscv64gc-unknown-none-elf`
+> toolchain.
 
-Debugging
----------
+Final executables are created in the `bin` subdirectory.
 
-```
-make qemu-gdb
-```
+Available targets:
 
-```
-arm-none-eabi-gdb -ex "target remote 127.0.0.1:1234" bin/trusted_os.elf
->>> add-symbol-file bin/trusted_applet.elf
->>> b main.main
-```
+| `TARGET`    | Board            | Executing and debugging                                                                                  |
+|-------------|------------------|----------------------------------------------------------------------------------------------------------|
+| `sifive_u`  | QEMU sifive_u    | [sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u#executing-and-debugging)  |
+
+The target has only been tested with emulated execution (e.g. `make qemu`)
 
 Authors
 =======
