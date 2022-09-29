@@ -106,10 +106,10 @@ effect using real hardware peripherals.
 
 Additionally the `linux` command can be used to spawn the
 [USB armory Debian base image](https://github.com/usbarmory/usbarmory-debian-base_image)
-as Main OS in NonSecure World.
+as Non-secure main OS.
 
 > :warning: only USB armory Debian base image releases >= 20211129 are
-> supported for NonSecure World operation.
+> supported for Non-secure operation.
 
 Compiling
 =========
