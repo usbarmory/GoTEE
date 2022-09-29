@@ -244,7 +244,7 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 
 	if ctx.ns && imx6ul.Native {
 		// allow NonSecure World R/W access to its own memory
-		if err = imx6ul.TZASC.EnableRegion(1, uint32(mem.Start()), uint32(mem.End()), tzcAttr); err != nil {
+		if err = imx6ul.TZASC.EnableRegion(1, uint32(mem.Start()), uint32(mem.Size()), tzcAttr); err != nil {
 			return
 		}
 	}
