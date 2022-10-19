@@ -54,6 +54,6 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 // non-secure execution context to handle supported GoTEE secure monitor calls.
 func NonSecureHandler(ctx *ExecCtx) (err error) {
 	// to be overridden by application
-	log.Printf("NonSeureHandler: unimplemented")
+	log.Printf("NonSecureHandler: unimplemented")
 	return
 }

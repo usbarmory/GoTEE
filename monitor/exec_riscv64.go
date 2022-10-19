@@ -123,6 +123,8 @@ type ExecCtx struct {
 	// executing g stack pointer
 	g_sp uint64
 
+	// Read() offset
+	off uint
 	// Write() buffer
 	buf []byte
 }

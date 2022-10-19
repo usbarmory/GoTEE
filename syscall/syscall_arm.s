@@ -49,7 +49,7 @@ TEXT ·Write(SB),$0-20
 
 	RET
 
-// func Read(trap uint, b []byte, n uint) uint
+// func Read(trap uint, b []byte, n uint) int
 TEXT ·Read(SB),$0-24
 	MOVW	trap+0(FP), R0
 	MOVW	b+4(FP), R1

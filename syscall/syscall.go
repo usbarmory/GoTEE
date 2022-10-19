@@ -41,7 +41,7 @@ func GetRandom(b []byte, n uint) {
 //
 // The underlying connection used by the RPC client (see NewClient()) is an
 // example of such implementation.
-func Read(trap uint, p []byte, n uint) uint
+func Read(trap uint, p []byte, n uint) int
 
 // Write requests a transfer of n bytes from p to the supervisor through the
 // syscall specified as first argument. It can be used to implement syscalls

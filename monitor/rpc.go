@@ -17,21 +17,28 @@ import (
 // Read reads up to len(p) bytes into p. The read data is received from the
 // execution context memory, after it is being written with syscall.Write().
 func (ctx *ExecCtx) Read(p []byte) (int, error) {
-	off := ctx.A1() - ctx.Memory.Start()
-	n := ctx.A2()
+	off := ctx.A1() - ctx.Memory.Start() + ctx.off
+	n := ctx.A2() - ctx.off
 	s := uint(len(p))
 
-	if s < n {
-		return 0, errors.New("invalid read length")
+	switch {
+	case n <= 0:
+		ctx.off = 0
+		return -1, nil
+	case n <= s:
+		ctx.off = 0
+		s = n
+	case n > s:
+		ctx.off += s
 	}
 
 	if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
 		return 0, errors.New("invalid read offset")
 	}
 
-	ctx.Memory.Read(ctx.Memory.Start(), int(off), p)
+	ctx.Memory.Read(ctx.Memory.Start(), int(off), p[0:s])
 
-	return int(n), nil
+	return int(s), nil
 }
 
 // Write writes len(p) bytes from p to the underlying data stream, it never
@@ -52,21 +59,30 @@ func (ctx *ExecCtx) rpc() (err error) {
 	case syscall.SYS_RPC_REQ:
 		err = ctx.Server.ServeRequest(jsonrpc.NewServerCodec(ctx))
 	case syscall.SYS_RPC_RES:
+		var last bool
+
 		off := ctx.A1() - ctx.Memory.Start()
 		n := ctx.A2()
 		s := uint(len(ctx.buf))
 
 		if s > n {
-			return errors.New("invalid buffer size")
+			s = n
+		} else {
+			last = true
 		}
 
 		if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
 			return errors.New("invalid read offset")
 		}
 
-		ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf)
+		ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf[0:s])
 		ctx.Ret(s)
-		ctx.buf = nil
+
+		if last {
+			ctx.buf = nil
+		} else {
+			ctx.buf = ctx.buf[s:]
+		}
 
 		return
 	default:

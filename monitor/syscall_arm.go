@@ -31,8 +31,7 @@ func (ctx *ExecCtx) Ret(val interface{}) {
 		ctx.R0 = uint32(v & 0xffffffff)
 		ctx.R1 = uint32(v >> 32)
 	case uint:
-		ctx.R0 = uint32(v & 0xffffffff)
-		ctx.R1 = uint32(v >> 32)
+		ctx.R0 = uint32(v)
 	case int64:
 		ctx.R0 = uint32(v & 0xffffffff)
 		ctx.R1 = uint32(v >> 32)

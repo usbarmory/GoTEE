@@ -10,7 +10,10 @@ import (
 	"io"
 	"net/rpc"
 	"net/rpc/jsonrpc"
+	"sync"
 )
+
+var mux sync.Mutex
 
 // Stream implements a data stream interface to exchange data buffers between
 // the security monitor and a lower privilege execution context over syscalls.
@@ -29,16 +32,12 @@ type Stream struct {
 
 // Read reads up to len(p) bytes into p, it never returns an error. The read is
 // requested, through the Stream ReadSyscall, to the supervisor.
-func (s *Stream) Read(p []byte) (int, error) {
-	// Go net/rpc client constantly polls for responses, even when no
-	// outstanding requests are present (see *Client.input() in
-	// net/rpc/client.go)
-	//
-	// To avoid a background loop of SYS_READ system calls we return io.EOF
-	// to shut down the rpc.Client after each request.
+func (s *Stream) Read(p []byte) (n int, err error) {
+	if n = Read(s.ReadSyscall, p, uint(len(p))); n <= 0 {
+		return 0, io.EOF
+	}
 
-	n := Read(s.ReadSyscall, p, uint(len(p)))
-	return int(n), io.EOF
+	return
 }
 
 // Write writes len(p) bytes from p to the underlying data stream, it never
@@ -66,7 +65,11 @@ func NewClient() *rpc.Client {
 }
 
 // Call is a convenience method that issues an RPC call on a disposable client
-// created with NewClient().
+// created with NewClient(), to avoid concurrent reads and writes a mutex is
+// held to prevent interleaved invocations.
 func Call(serviceMethod string, args interface{}, reply interface{}) error {
+	mux.Lock()
+	defer mux.Unlock()
+
 	return NewClient().Call(serviceMethod, args, reply)
 }

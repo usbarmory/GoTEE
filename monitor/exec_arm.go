@@ -132,6 +132,8 @@ type ExecCtx struct {
 	// executing g stack pointer
 	g_sp uint32
 
+	// Read() offset
+	off uint
 	// Write() buffer
 	buf []byte
 }
