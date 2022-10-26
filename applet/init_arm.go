@@ -34,7 +34,7 @@ func nanotime1() int64 {
 	// TamaGo allows PL0 access to generic counters, so an efficient
 	// implementation of nanotime1 in user mode simply mirrors what TamaGo
 	// does natively:
-	return int64(ARM.TimerFn() * ARM.TimerMultiplier)
+	return int64(ARM.TimerFn()*ARM.TimerMultiplier + ARM.TimerOffset)
 
 	// A less efficient version, in case counters are not accessible, is to
 	// make a supervisor request:
