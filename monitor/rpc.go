@@ -33,7 +33,7 @@ func (ctx *ExecCtx) Read(p []byte) (int, error) {
 	}
 
 	if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
-		return 0, errors.New("invalid read offset")
+		return 0, errors.New("invalid offset")
 	}
 
 	ctx.Memory.Read(ctx.Memory.Start(), int(off), p[0:s])
@@ -72,7 +72,7 @@ func (ctx *ExecCtx) rpc() (err error) {
 		}
 
 		if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
-			return errors.New("invalid read offset")
+			return errors.New("invalid offset")
 		}
 
 		ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf[0:s])
