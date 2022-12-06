@@ -126,12 +126,12 @@ type ExecCtx struct {
 	// Debug controls activation of debug logs
 	Debug bool
 
+	// execution state
+	run bool
 	// TrustZone configuration
 	ns bool
-
 	// executing g stack pointer
 	g_sp uint32
-
 	// Read() offset
 	off uint
 	// Write() buffer
@@ -196,7 +196,9 @@ func (ctx *ExecCtx) schedule() (err error) {
 // The function invokes the context Handler() and returns when an unhandled
 // exception, or any other error, is raised.
 func (ctx *ExecCtx) Run() (err error) {
-	for {
+	ctx.run = true
+
+	for ctx.run {
 		if err = ctx.schedule(); err != nil {
 			break
 		}
@@ -211,6 +213,14 @@ func (ctx *ExecCtx) Run() (err error) {
 	}
 
 	return
+}
+
+// Stop stops the execution context.
+func (ctx *ExecCtx) Stop() {
+	mux.Lock()
+	defer mux.Unlock()
+
+	ctx.run = false
 }
 
 // Load returns an execution context initialized for the argument entry point
