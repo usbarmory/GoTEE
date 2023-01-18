@@ -132,10 +132,6 @@ make qemu
 00:00:00 tamago/arm (go1.19.1) • TEE user applet
 00:00:00 tamago/arm (go1.19.1) • system/supervisor (Non-secure)
 00:00:00 supervisor is about to yield back
-00:00:00    r0:00000000  r1:814243f0  r2:00000001  r3:00000000
-00:00:00    r4:00000000  r5:00000000  r6:00000000  r7:8146bf14
-00:00:00    r8:00000007  r9:0000002b r10:814020f0 r11:80302b01 cpsr:600001d6 (MON)
-00:00:00   r12:00000073  sp:8146bf54  lr:801937a4  pc:80193884 spsr:600001df (SYS)
 00:00:00 SM stopped mode:SYS sp:0x8146bf54 lr:0x801937a4 pc:0x80193884 ns:true err:exit
 00:00:00 applet obtained 16 random bytes from monitor: b4cc4764dd30291a52545b182313003c
 00:00:00 applet requests echo via RPC: hello

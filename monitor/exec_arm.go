@@ -209,6 +209,13 @@ func (ctx *ExecCtx) Run() (err error) {
 			}
 		}
 
+		// Return to next instruction when handling interrupts
+		// (Table 11-3, ARM® Cortex™ -A Series Programmer’s Guide).
+		switch ctx.ExceptionVector {
+		case arm.IRQ, arm.FIQ:
+			ctx.R15 -= 4
+		}
+
 		runtime.Gosched()
 	}
 
