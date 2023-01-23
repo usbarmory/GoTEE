@@ -126,8 +126,6 @@ type ExecCtx struct {
 	// Debug controls activation of debug logs
 	Debug bool
 
-	// entry point
-	entry uint32
 	// execution state
 	run bool
 	// TrustZone configuration
@@ -232,14 +230,6 @@ func (ctx *ExecCtx) Stop() {
 	ctx.run = false
 }
 
-// Reset sets the execution context program counter to its Load() entry point.
-func (ctx *ExecCtx) Reset() {
-	mux.Lock()
-	defer mux.Unlock()
-
-	ctx.R15 = ctx.entry
-}
-
 // Load returns an execution context initialized for the argument entry point
 // and memory region, the secure flag controls whether the context belongs to a
 // secure partition (e.g. TrustZone Secure World) or a non-secure one (e.g.
@@ -254,7 +244,6 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		VFP:    make([]uint64, 32),
 		Memory: mem,
 		Server: rpc.NewServer(),
-		entry:  uint32(entry),
 		ns:     !secure,
 	}
 

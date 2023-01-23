@@ -117,8 +117,6 @@ type ExecCtx struct {
 	// Debug controls activation of debug logs
 	Debug bool
 
-	// entry point
-	entry uint32
 	// execution state
 	run bool
 	// trusted applet flag
@@ -231,14 +229,6 @@ func (ctx *ExecCtx) Stop() {
 	ctx.run = false
 }
 
-// Reset sets the execution context program counter to its Load() entry point.
-func (ctx *ExecCtx) Reset() {
-	mux.Lock()
-	defer mux.Unlock()
-
-	ctx.PC = ctx.entry
-}
-
 // Load returns an execution context initialized for the argument entry point
 // and memory region.
 //
@@ -248,7 +238,6 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		PC:     uint64(entry),
 		Memory: mem,
 		Server: rpc.NewServer(),
-		entry:  uint64(entry),
 		secure: secure,
 	}
 
