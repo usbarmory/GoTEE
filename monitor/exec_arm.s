@@ -88,6 +88,9 @@ switch:
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
 #define MONITOR_EXCEPTION(OFFSET)						\
+	/* disable FIQ interrupts */						\
+	WORD	$0xf10c0140			/* cpsid f */			\
+										\
 	/* save R0 */								\
 	MOVW	R0, R13								\
 										\
