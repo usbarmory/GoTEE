@@ -167,7 +167,7 @@ func (ctx *ExecCtx) schedule() (err error) {
 	// set monitor handlers
 	arm.SetVectorTable(monitorVectorTable)
 
-	// execute applet
+	// execute context
 	Exec(ctx)
 
 	// restore default handlers
@@ -176,7 +176,7 @@ func (ctx *ExecCtx) schedule() (err error) {
 	mode, _ := ctx.Mode()
 
 	switch mode {
-	case arm.MON_MODE, arm.SVC_MODE:
+	case arm.SVC_MODE, arm.MON_MODE:
 		return
 	default:
 		if ctx.Debug {
