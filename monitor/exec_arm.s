@@ -16,7 +16,7 @@
 // An execution context (ExecCtx) structure is used to hold initial register
 // state at execution as well as store the updated state on re-entry.
 //
-// The exception handling uses ARM Thread ID Register (TPIDRURO) in a similar
+// The exception handling uses a Thread ID Register (TPIDRPRW) in a similar
 // manner to Go own use of TLS (https://golang.org/src/runtime/tls_arm.s).
 //
 // With respect to TrustZone the handler must save and restore the following
@@ -56,8 +56,8 @@ TEXT ·Exec(SB),$0-4
 	MOVW	ExecCtx_R13(R0), R13
 	MOVW	ExecCtx_R14(R0), R14
 
-	// save context pointer as Thread ID (TPIDRURO)
-	MCR	15, 0, R0, C13, C0, 3
+	// save context pointer as Thread ID (TPIDRPRW)
+	MCR	15, 0, R0, C13, C0, 4
 
 	// switch to monitor mode
 	WORD	$0xf1020016			// cps 0x16
@@ -98,8 +98,8 @@ switch:
 	MOVW	$0, R0								\
 	MCR	15, 0, R0, C1, C1, 0						\
 										\
-	/* restore context pointer from Thread ID (TPIDRURO) */			\
-	MRC	15, 0, R0, C13, C0, 3						\
+	/* restore context pointer from Thread ID (TPIDRPRW) */			\
+	MRC	15, 0, R0, C13, C0, 4						\
 										\
 	/* save general purpose registers */					\
 	WORD	$0xe8c07fff			/* stmia r0, {r0-r14}^ */	\
