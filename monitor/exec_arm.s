@@ -89,7 +89,7 @@ switch:
 
 #define MONITOR_EXCEPTION(OFFSET)						\
 	/* disable FIQ interrupts */						\
-	WORD	$0xf10c0140			/* cpsid f */			\
+	WORD	$0xf10c0040			/* cpsid f */			\
 										\
 	/* save R0 */								\
 	MOVW	R0, R13								\
