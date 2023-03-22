@@ -31,9 +31,9 @@
 //
 //  • r13-r14 of Abort/Undefined/IRQ modes, r8-r14 of FIQ mode:
 //
-//    In GoTEE exceptions to Abort/Undefined/IRQ/FIQ modes are always handled
-//    with an unrecoverable panic, therefore their banked registers are not
-//    saved/restored.
+//    TamaGo (and therefore GoTEE) panics on Abort/Undefined exceptions
+//    therefore their banked registers are not saved/restored, interrupt
+//    handling (IRQ/FIQ) must be exclusive to either World.
 //
 //  • Data register of shared coprocessors (e.g VFP/FPU):
 //
@@ -140,7 +140,7 @@ switch:
 										\
 	/* restore g registers */						\
 	MOVW		ExecCtx_g_sp(R1), R13					\
-	MOVM.IA.W	(R13), [R0-R12, R14]	/* pop {r0-rN, r14} */		\
+	MOVM.IA.W	(R13), [R0-R12, R14]	/* pop {r0-r12, r14} */		\
 										\
 	/* restore PC from LR */						\
 	MOVW	R14, R15							\
