@@ -94,7 +94,7 @@ switch:
 	/* save R0 */								\
 	MOVW	R0, R13								\
 										\
-	/* disable NS bit in SCR */						\
+	/* disable EA, FIQ and NS bit in SCR */					\
 	MOVW	$0, R0								\
 	MCR	15, 0, R0, C1, C1, 0						\
 										\
