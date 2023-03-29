@@ -6,6 +6,8 @@
 
 #include "go_asm.h"
 
+// A7 is always set to 0 to avoid interference with SBI
+
 // func Supervisor()
 TEXT ·Supervisor(SB),$0
 	MOV	$0, A7
