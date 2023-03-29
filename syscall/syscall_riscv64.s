@@ -8,13 +8,16 @@
 
 // func Supervisor()
 TEXT ·Supervisor(SB),$0
+	MOV	$0, A7
 	ECALL
+
 	RET
 
 // func Exit()
 TEXT ·Exit(SB),$0
 	MOV	$const_SYS_EXIT, A0
 
+	MOV	$0, A7
 	ECALL
 
 	RET
@@ -24,6 +27,7 @@ TEXT ·Print(SB),$0-1
 	MOV	$const_SYS_WRITE, A0
 	MOV	c+0(FP), A1
 
+	MOV	$0, A7
 	ECALL
 
 	RET
@@ -32,6 +36,7 @@ TEXT ·Print(SB),$0-1
 TEXT ·Nanotime(SB),$0-8
 	MOV	$const_SYS_NANOTIME, A0
 
+	MOV	$0, A7
 	ECALL
 
 	MOV	A0, ret+0(FP)
@@ -44,6 +49,7 @@ TEXT ·Write(SB),$0-40
 	MOV	b+8(FP), A1
 	MOV	n+32(FP), A2
 
+	MOV	$0, A7
 	ECALL
 
 	RET
@@ -54,6 +60,7 @@ TEXT ·Read(SB),$0-48
 	MOV	b+8(FP), A1
 	MOV	n+32(FP), A2
 
+	MOV	$0, A7
 	ECALL
 
 	MOV	A0, ret+40(FP)
