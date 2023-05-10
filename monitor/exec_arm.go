@@ -176,7 +176,7 @@ func (ctx *ExecCtx) schedule() (err error) {
 	mode, _ := ctx.Mode()
 
 	switch mode {
-	case arm.FIQ_MODE, arm.SVC_MODE, arm.MON_MODE:
+	case arm.IRQ_MODE, arm.FIQ_MODE, arm.SVC_MODE, arm.MON_MODE:
 		return
 	default:
 		if ctx.Debug {

@@ -83,21 +83,20 @@ the example application is reachable via SSH through
 $ ssh gotee@10.0.0.1
 tamago/arm • TEE security monitor (Secure World system/monitor)
 
-  help                                   # this help
-  reboot                                 # reset the SoC/board
-  stack                                  # stack trace of current goroutine
-  stackall                               # stack trace of all goroutines
-  peek <hex offset> <size>               # memory display (use with caution)
-  poke <hex offset> <hex value>          # memory write   (use with caution)
-
-  gotee                                  # TrustZone example w/ TamaGo unikernels
-  linux <uSD|eMMC>                       # boot NonSecure USB armory Debian base image
-
-  dbg                                    # show ARM debug permissions
-  csl                                    # show config security levels (CSL)
-  csl <periph> <slave> <hex csl>         #  set config security level  (CSL)
-  sa                                     # show security access (SA)
-  sa  <id> <secure|nonsecure>            #  set security access (SA)
+csl                                              # show config security levels (CSL)
+csl             <periph> <slave> <hex csl>       # set config security level (CSL)
+dbg                                              # show ARM debug permissions
+exit, quit                                       # close session
+gotee                                            # TrustZone example w/ TamaGo unikernels
+help                                             # this help
+linux           <uSD|eMMC>                       # boot NonSecure USB armory Debian base image
+peek            <hex offset> <size>              # memory display (use with caution)
+poke            <hex offset> <hex value>         # memory write   (use with caution)
+reboot                                           # reset device
+sa                                               # show security access (SA)
+sa              <id> <secure|nonsecure>          # set security access (SA)
+stack                                            # stack trace of current goroutine
+stackall                                         # stack trace of all goroutines
 
 >
 ```
@@ -123,6 +122,7 @@ The example can be also executed under QEMU emulation.
 ```
 make qemu
 ...
+> gotee
 00:00:00 tamago/arm • TEE security monitor (Secure World system/monitor)
 00:00:00 SM loaded applet addr:0x9c000000 entry:0x9c072740 size:4940275
 00:00:00 SM loaded kernel addr:0x80000000 entry:0x8007100c size:4577643
@@ -148,7 +148,6 @@ make qemu
 00:00:05    r8:00000007  r9:0000003d r10:9c8020f0 r11:9c342f41 cpsr:600001d7 (ABT)
 00:00:05   r12:00000061  sp:9c86bf08  lr:9c1b1be8  pc:9c011330 spsr:600001d0 (USR)
 00:00:05 SM stopped mode:USR sp:0x9c86bf08 lr:0x9c1b1be8 pc:0x9c011330 ns:false err:ABT
-00:00:05 SM says goodbye
 ```
 
 Building the compiler
