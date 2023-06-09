@@ -21,7 +21,7 @@ import (
 func SecureHandler(ctx *ExecCtx) (err error) {
 	switch num := ctx.A0(); num {
 	case syscall.SYS_EXIT:
-		return errors.New("exit")
+		ctx.Stop()
 	case syscall.SYS_WRITE:
 		print(string(ctx.A1()))
 	case syscall.SYS_NANOTIME:
