@@ -27,7 +27,8 @@ func getRandomData(b []byte) {
 	syscall.GetRandom(b, uint(len(b)))
 }
 
-// Exit signals the applet termination to its supervisor.
+// Exit signals the applet termination to its supervisor, it can be used as
+// runtime.Exit to yield to monitor on runtime panic.
 func Exit() {
 	syscall.Exit()
 }
