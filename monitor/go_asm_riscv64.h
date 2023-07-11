@@ -20,5 +20,4 @@
 #define CSRC(RS,CSR) WORD $(0x3073 + RS<<15 + CSR<<20)
 #define CSRRW(RS,CSR,RD) WORD $(0x1073 + RD<<7 + RS<<15 + CSR<<20)
 
-#define WFI   WORD $0x10500073
 #define MRET  WORD $0x30200073
