@@ -83,6 +83,7 @@ the example application is reachable via SSH through
 $ ssh gotee@10.0.0.1
 tamago/arm • TEE security monitor (Secure World system/monitor)
 
+allgptr                                          # memory forensics of applet goroutines
 csl                                              # show config security levels (CSL)
 csl             <periph> <slave> <hex csl>       # set config security level (CSL)
 dbg                                              # show ARM debug permissions
