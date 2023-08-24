@@ -119,6 +119,8 @@ type ExecCtx struct {
 
 	// execution state
 	run bool
+	// stopped will be closed once the context has stopped running.
+	stopped chan struct{}
 	// trusted applet flag
 	secure bool
 	// executing g stack pointer
@@ -203,6 +205,8 @@ func (ctx *ExecCtx) schedule() (err error) {
 // exception, or any other error, is raised.
 func (ctx *ExecCtx) Run() (err error) {
 	ctx.run = true
+	ctx.stopped = make(chan struct{})
+	defer close(ctx.stopped)
 
 	for ctx.run {
 		if err = ctx.schedule(); err != nil {
@@ -222,11 +226,13 @@ func (ctx *ExecCtx) Run() (err error) {
 }
 
 // Stop stops the execution context.
-func (ctx *ExecCtx) Stop() {
+// Returns a channel which will become closed once the context ceases to run.
+func (ctx *ExecCtx) Stop() chan struct{} {
 	mux.Lock()
 	defer mux.Unlock()
 
 	ctx.run = false
+	return ctx.stopped
 }
 
 // Load returns an execution context initialized for the argument entry point
