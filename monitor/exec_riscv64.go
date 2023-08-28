@@ -226,12 +226,15 @@ func (ctx *ExecCtx) Run() (err error) {
 }
 
 // Stop stops the execution context.
-// Returns a channel which will become closed once the context ceases to run.
-func (ctx *ExecCtx) Stop() chan struct{} {
+func (ctx *ExecCtx) Stop() {
 	mux.Lock()
 	defer mux.Unlock()
 
 	ctx.run = false
+}
+
+// Done returns a channel which will be closed once execution context has stopped.
+func (ctx *ExecCtx) Done() chan struct{} {
 	return ctx.stopped
 }
 
