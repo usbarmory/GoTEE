@@ -284,7 +284,7 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		defer imx6ul.CSU.SetAccess(0, false, false)
 	}
 
-	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), memAttr)
+	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), 0, memAttr)
 
 	return
 }
