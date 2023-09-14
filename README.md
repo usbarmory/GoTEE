@@ -138,10 +138,8 @@ make qemu
 00:00:00 applet requests echo via RPC: hello
 00:00:00 applet received echo via RPC: hello
 00:00:00 applet will sleep for 5 seconds
-00:00:01 SM says 1 missisipi
 00:00:01 applet says 1 missisipi
 ...
-00:00:05 SM says 5 missisipi
 00:00:05 applet says 5 missisipi
 00:00:05 applet is about to read secure memory at 0x98010000
 00:00:05    r0:98010000  r1:9c8240c0  r2:98010000  r3:00000000
