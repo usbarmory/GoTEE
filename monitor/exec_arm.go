@@ -28,6 +28,9 @@ import (
 const (
 	UserMode   = (0b111 << 6) | arm.USR_MODE
 	SystemMode = (0b111 << 6) | arm.SYS_MODE
+
+	UserFlags   = arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION | arm.TTE_AP_011<<10
+	SystemFlags = arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION | arm.TTE_AP_001<<10 | arm.TTE_NS
 )
 
 var (
@@ -248,6 +251,8 @@ func (ctx *ExecCtx) Done() chan struct{} {
 // NonSecure by means of MMU NS bit and memory controller region configuration.
 // Any additional peripheral restrictions are up to the caller.
 func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
+	var flags uint32
+
 	ctx = &ExecCtx{
 		R15:    uint32(entry),
 		VFP:    make([]uint64, 32),
@@ -268,7 +273,6 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	}
 
 	tzcAttr := (1 << tzc380.SP_NW_RD) | (1 << tzc380.SP_NW_WR)
-	memAttr := arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION
 
 	if ctx.ns && imx6ul.Native {
 		// allow NonSecure World R/W access to its own memory
@@ -280,10 +284,10 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	if ctx.ns {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
-		memAttr |= arm.TTE_AP_001<<10 | arm.TTE_NS
+		flags = SystemFlags
 		ctx.SPSR = SystemMode
 	} else {
-		memAttr |= arm.TTE_AP_011 << 10
+		flags = UserFlags
 		ctx.SPSR = UserMode
 	}
 
@@ -293,7 +297,7 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		defer imx6ul.CSU.SetAccess(0, false, false)
 	}
 
-	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), 0, memAttr)
+	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), 0, flags)
 
 	return
 }
