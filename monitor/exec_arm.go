@@ -291,12 +291,6 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		ctx.SPSR = UserMode
 	}
 
-	// Cortex-A7 master needs CP15SDISABLE low for arm.set_ttbr0
-	if secure, lock, err := imx6ul.CSU.GetAccess(0); !secure && !lock && err == nil {
-		imx6ul.CSU.SetAccess(0, true, false)
-		defer imx6ul.CSU.SetAccess(0, false, false)
-	}
-
 	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), 0, flags)
 
 	return
