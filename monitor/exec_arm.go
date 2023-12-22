@@ -25,14 +25,6 @@ import (
 	"github.com/usbarmory/tamago/soc/nxp/imx6ul"
 )
 
-const (
-	UserMode   = (0b111 << 6) | arm.USR_MODE
-	SystemMode = (0b111 << 6) | arm.SYS_MODE
-
-	UserFlags   = arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION | arm.TTE_AP_011<<10
-	SystemFlags = arm.TTE_CACHEABLE | arm.TTE_BUFFERABLE | arm.TTE_SECTION | arm.TTE_AP_001<<10 | arm.TTE_NS
-)
-
 var (
 	systemVectorTable = arm.SystemVectorTable()
 
@@ -119,6 +111,11 @@ type ExecCtx struct {
 
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
+	// Domain represents the domain ID (0-15) assigned to the executable
+	// Memory. The value must be overridden with distinct values if memory
+	// isolation is required for parallel execution of different
+	// user/secure execution contexts.
+	Domain uint32
 
 	// Handler, if not nil, handles user syscalls
 	Handler func(ctx *ExecCtx) error
@@ -205,6 +202,18 @@ func (ctx *ExecCtx) Run() (err error) {
 	ctx.stopped = make(chan struct{})
 	defer close(ctx.stopped)
 
+	ap := arm.TTE_AP_001
+
+	if !ctx.ns {
+		ap = arm.TTE_AP_011
+	}
+
+	// Set privilege level and domain access
+	imx6ul.ARM.SetAccessPermissions(
+		uint32(ctx.Memory.Start()), uint32(ctx.Memory.End()),
+		ap, ctx.Domain,
+	)
+
 	for ctx.run {
 		if err = ctx.schedule(); err != nil {
 			break
@@ -249,10 +258,10 @@ func (ctx *ExecCtx) Done() chan struct{} {
 //
 // In case of a non-secure execution context, the memory is configured as
 // NonSecure by means of MMU NS bit and memory controller region configuration.
-// Any additional peripheral restrictions are up to the caller.
+//
+// The caller is responsible for any other required MMU configuration (see
+// arm.ConfigureMMU()) or additional peripheral restrictions (e.g. TrustZone).
 func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
-	var flags uint32
-
 	ctx = &ExecCtx{
 		R15:    uint32(entry),
 		VFP:    make([]uint64, 32),
@@ -281,17 +290,20 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 		}
 	}
 
+	// set all mask bits
+	ctx.SPSR = (0b111 << 6)
+	flags := arm.MemoryRegion
+
 	if ctx.ns {
 		// The NS bit is required to ensure that cache lines are kept
 		// separate.
-		flags = SystemFlags
-		ctx.SPSR = SystemMode
+		ctx.SPSR |= arm.SYS_MODE
+		flags |= arm.TTE_NS
 	} else {
-		flags = UserFlags
-		ctx.SPSR = UserMode
+		ctx.SPSR |= arm.USR_MODE
 	}
 
-	imx6ul.ARM.ConfigureMMU(uint32(mem.Start()), uint32(mem.End()), 0, flags)
+	imx6ul.ARM.SetAttributes(uint32(mem.Start()), uint32(mem.End()), flags)
 
 	return
 }

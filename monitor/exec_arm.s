@@ -67,14 +67,14 @@ TEXT ·Exec(SB),$0-4
 	WORD	$0xe16ff001			// msr SPSR, r1
 
 	MOVW	ExecCtx_ns(R0), R1
-	TST	$1, R1
-	BEQ	switch
+	CMP	$1, R1
+	BNE	restore
 
 	// enable EA, FIQ, and NS bit in SCR
 	MOVW	$13, R1
 	MCR	15, 0, R1, C1, C1, 0
 
-switch:
+restore:
 	/* restore VFP registers */
 	MOVW	ExecCtx_VFP(R0), R1
 	WORD	$0xecb10b20			// vldm r1!, {d0-d15}
@@ -84,6 +84,21 @@ switch:
 	MOVW	ExecCtx_FPEXC(R0), R1
 	WORD	$0xeee81a10			// vmsr fpexc, r1
 
+	MOVW	ExecCtx_Domain(R0), R1
+	CMP	$0, R1
+	BEQ	switch
+
+	// enable DACR bit for ExecCtx_Domain
+	MOVW	$2, R2
+	MUL	R1, R2
+	MOVW	$1, R1
+	MOVW	R1<<R2, R1
+
+	// Set Domain Access (ExecCtx_Domain + 0)
+	ORR	$1, R1, R1
+	MCR	15, 0, R1, C3, C0, 0
+
+switch:
 	// restore r0-r12, r15
 	WORD	$0xe8d0ffff			// ldmia r0, {r0-r15}^
 
