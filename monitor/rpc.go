@@ -49,6 +49,37 @@ func (ctx *ExecCtx) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// Flush writes data previously buffered by Write to the execution context
+// memory.
+func (ctx *ExecCtx) Flush() error {
+	var last bool
+
+	off := ctx.A1() - ctx.Memory.Start()
+	n := ctx.A2()
+	s := uint(len(ctx.buf))
+
+	if s > n {
+		s = n
+	} else {
+		last = true
+	}
+
+	if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
+		return errors.New("invalid offset")
+	}
+
+	ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf[0:s])
+	ctx.Ret(s)
+
+	if last {
+		ctx.buf = nil
+	} else {
+		ctx.buf = ctx.buf[s:]
+	}
+
+	return nil
+}
+
 // Close has no effect.
 func (ctx *ExecCtx) Close() error {
 	return nil
@@ -59,32 +90,7 @@ func (ctx *ExecCtx) rpc() (err error) {
 	case syscall.SYS_RPC_REQ:
 		err = ctx.Server.ServeRequest(jsonrpc.NewServerCodec(ctx))
 	case syscall.SYS_RPC_RES:
-		var last bool
-
-		off := ctx.A1() - ctx.Memory.Start()
-		n := ctx.A2()
-		s := uint(len(ctx.buf))
-
-		if s > n {
-			s = n
-		} else {
-			last = true
-		}
-
-		if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
-			return errors.New("invalid offset")
-		}
-
-		ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf[0:s])
-		ctx.Ret(s)
-
-		if last {
-			ctx.buf = nil
-		} else {
-			ctx.buf = ctx.buf[s:]
-		}
-
-		return
+		err = ctx.Flush()
 	default:
 		return fmt.Errorf("invalid syscall %d", num)
 	}
