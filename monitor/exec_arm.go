@@ -134,10 +134,11 @@ type ExecCtx struct {
 	ns bool
 	// executing g stack pointer
 	g_sp uint32
-	// Read() offset
-	off uint
+
+	// Read() buffer
+	in []byte
 	// Write() buffer
-	buf []byte
+	out []byte
 }
 
 // Print logs the execution context registers.

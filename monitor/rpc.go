@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"net/rpc/jsonrpc"
+	errno "syscall"
 
 	"github.com/usbarmory/GoTEE/syscall"
 )
@@ -17,67 +18,28 @@ import (
 // Read reads up to len(p) bytes into p. The read data is received from the
 // execution context memory, after it is being written with syscall.Write().
 func (ctx *ExecCtx) Read(p []byte) (int, error) {
-	off := ctx.A1() - ctx.Memory.Start() + ctx.off
-	n := ctx.A2() - ctx.off
-	s := uint(len(p))
+	r := len(ctx.in)
+	n := len(p)
 
 	switch {
-	case n <= 0:
-		ctx.off = 0
-		return -1, nil
-	case n <= s:
-		ctx.off = 0
-		s = n
-	case n > s:
-		ctx.off += s
+	case r <= 0:
+		return 0, nil
+	case r < n:
+		n = r
 	}
 
-	if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
-		return 0, errors.New("invalid offset")
-	}
+	copy(p, ctx.in[0:n])
+	ctx.in = ctx.in[n:]
 
-	ctx.Memory.Read(ctx.Memory.Start(), int(off), p[0:s])
-
-	return int(s), nil
+	return n, nil
 }
 
 // Write writes len(p) bytes from p to the underlying data stream, it never
 // returns an error. The written data is buffered within the execution context,
 // waiting for its read through syscall.Read().
 func (ctx *ExecCtx) Write(p []byte) (int, error) {
-	ctx.buf = p
+	ctx.out = append(ctx.out, p...)
 	return len(p), nil
-}
-
-// Flush writes data previously buffered by Write to the execution context
-// memory.
-func (ctx *ExecCtx) Flush() error {
-	var last bool
-
-	off := ctx.A1() - ctx.Memory.Start()
-	n := ctx.A2()
-	s := uint(len(ctx.buf))
-
-	if s > n {
-		s = n
-	} else {
-		last = true
-	}
-
-	if !(off >= 0 && off < (ctx.Memory.Size()-s)) {
-		return errors.New("invalid offset")
-	}
-
-	ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.buf[0:s])
-	ctx.Ret(s)
-
-	if last {
-		ctx.buf = nil
-	} else {
-		ctx.buf = ctx.buf[s:]
-	}
-
-	return nil
 }
 
 // Close has no effect.
@@ -85,14 +47,66 @@ func (ctx *ExecCtx) Close() error {
 	return nil
 }
 
+// Recv handles syscall.Write() as received from the execution context memory,
+// the written data is buffered (see Read()).
+func (ctx *ExecCtx) Recv() error {
+	off := ctx.A1() - ctx.Memory.Start()
+	n := ctx.A2()
+
+	if !(off >= 0 && off < (ctx.Memory.Size()-n)) {
+		return errors.New("invalid offset")
+	}
+
+	buf := make([]byte, n)
+
+	ctx.Memory.Read(ctx.Memory.Start(), int(off), buf)
+	ctx.in = append(ctx.in, buf...)
+
+	return nil
+}
+
+// Flush handles syscall.Read() as received from the execution context, the
+// buffered data (see Write()) is returned to the execution context memory..
+func (ctx *ExecCtx) Flush(err error) (int, error) {
+	off := ctx.A1() - ctx.Memory.Start()
+	n := ctx.A2()
+	r := uint(len(ctx.out))
+
+	if !(off >= 0 && off < (ctx.Memory.Size()-n)) {
+		return 0, errors.New("invalid offset")
+	}
+
+	switch {
+	case err != nil:
+		ctx.Ret(-(int(errno.EPIPE)))
+		return 0, nil
+	case r <= 0:
+		ctx.Ret(0)
+		return 0, nil
+	case r < n:
+		n = r
+	}
+
+	ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.out[0:n])
+	ctx.Ret(n)
+
+	ctx.out = ctx.out[n:]
+
+	return int(n), nil
+}
+
 func (ctx *ExecCtx) rpc() (err error) {
 	switch num := ctx.A0(); num {
 	case syscall.SYS_RPC_REQ:
+		if err = ctx.Recv(); err != nil {
+			return
+		}
+
 		err = ctx.Server.ServeRequest(jsonrpc.NewServerCodec(ctx))
 	case syscall.SYS_RPC_RES:
-		err = ctx.Flush()
+		_, err = ctx.Flush(nil)
 	default:
-		return fmt.Errorf("invalid syscall %d", num)
+		err = fmt.Errorf("invalid syscall %d", num)
 	}
 
 	return
