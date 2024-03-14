@@ -27,18 +27,19 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 	case syscall.SYS_NANOTIME:
 		ctx.Ret(time.Now().UnixNano())
 	case syscall.SYS_GETRANDOM:
-		off := ctx.A1() - ctx.Memory.Start()
-		buf := make([]byte, ctx.A2())
+		off, n, err := ctx.TransferRegion()
 
-		if !(off >= 0 && off < (ctx.Memory.Size()-uint(len(buf)))) {
-			return errors.New("invalid offset")
+		if err != nil {
+			return err
 		}
 
-		if n, err := rand.Read(buf); err != nil || n != int(ctx.A2()) {
+		buf := make([]byte, n)
+
+		if _, err := rand.Read(buf); err != nil {
 			return errors.New("internal error")
 		}
 
-		ctx.Memory.Write(ctx.Memory.Start(), int(off), buf)
+		ctx.Memory.Write(ctx.Memory.Start(), off, buf)
 	case syscall.SYS_RPC_REQ, syscall.SYS_RPC_RES:
 		if ctx.Server != nil {
 			err = ctx.rpc()

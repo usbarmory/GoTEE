@@ -7,10 +7,8 @@
 package monitor
 
 import (
-	"errors"
 	"fmt"
 	"net/rpc/jsonrpc"
-	errno "syscall"
 
 	"github.com/usbarmory/GoTEE/syscall"
 )
@@ -49,36 +47,39 @@ func (ctx *ExecCtx) Close() error {
 
 // Recv handles syscall.Write() as received from the execution context memory,
 // the written data is buffered (see Read()).
-func (ctx *ExecCtx) Recv() error {
-	off := ctx.A1() - ctx.Memory.Start()
-	n := ctx.A2()
+func (ctx *ExecCtx) Recv() (err error) {
+	off, n, err := ctx.TransferRegion()
 
-	if !(off >= 0 && off < (ctx.Memory.Size()-n)) {
-		return errors.New("invalid offset")
+	if err != nil {
+		return
 	}
 
 	buf := make([]byte, n)
 
-	ctx.Memory.Read(ctx.Memory.Start(), int(off), buf)
+	ctx.Memory.Read(ctx.Memory.Start(), off, buf)
 	ctx.in = append(ctx.in, buf...)
 
 	return nil
 }
 
 // Flush handles syscall.Read() as received from the execution context, the
-// buffered data (see Write()) is returned to the execution context memory..
-func (ctx *ExecCtx) Flush(err error) (int, error) {
-	off := ctx.A1() - ctx.Memory.Start()
-	n := ctx.A2()
-	r := uint(len(ctx.out))
+// buffered data (see Write()) is returned to the execution context memory.
+//
+// A negative error number can passed as return value for syscall.Read()
+// causing no data to be returned or flushed, zero or positive values are
+// ignored as the number of bytes read is returned.
+func (ctx *ExecCtx) Flush(errno int) (n int, err error) {
+	off, n, err := ctx.TransferRegion()
 
-	if !(off >= 0 && off < (ctx.Memory.Size()-n)) {
-		return 0, errors.New("invalid offset")
+	if err != nil {
+		return
 	}
 
+	r := len(ctx.out)
+
 	switch {
-	case err != nil:
-		ctx.Ret(-(int(errno.EPIPE)))
+	case errno < 0:
+		ctx.Ret(errno)
 		return 0, nil
 	case r <= 0:
 		ctx.Ret(0)
@@ -87,12 +88,12 @@ func (ctx *ExecCtx) Flush(err error) (int, error) {
 		n = r
 	}
 
-	ctx.Memory.Write(ctx.Memory.Start(), int(off), ctx.out[0:n])
+	ctx.Memory.Write(ctx.Memory.Start(), off, ctx.out[0:n])
 	ctx.Ret(n)
 
 	ctx.out = ctx.out[n:]
 
-	return int(n), nil
+	return n, nil
 }
 
 func (ctx *ExecCtx) rpc() (err error) {
@@ -104,7 +105,7 @@ func (ctx *ExecCtx) rpc() (err error) {
 
 		err = ctx.Server.ServeRequest(jsonrpc.NewServerCodec(ctx))
 	case syscall.SYS_RPC_RES:
-		_, err = ctx.Flush(nil)
+		_, err = ctx.Flush(0)
 	default:
 		err = fmt.Errorf("invalid syscall %d", num)
 	}
