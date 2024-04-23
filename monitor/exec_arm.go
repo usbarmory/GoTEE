@@ -168,13 +168,13 @@ func (ctx *ExecCtx) schedule() (err error) {
 	defer mux.Unlock()
 
 	// set monitor handlers
-	arm.SetVectorTable(monitorVectorTable)
+	imx6ul.ARM.SetVectorTable(monitorVectorTable)
 
 	// execute context
 	Exec(ctx)
 
 	// restore default handlers
-	arm.SetVectorTable(systemVectorTable)
+	imx6ul.ARM.SetVectorTable(systemVectorTable)
 
 	mode, _ := ctx.Mode()
 
