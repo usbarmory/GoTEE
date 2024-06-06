@@ -211,6 +211,11 @@ Available targets:
 
 The target has only been tested with emulated execution (e.g. `make qemu`)
 
+Applications using GoTEE
+========================
+
+* [ArmoredWitness](https://github.com/transparency-dev/armored-witness) - cross-ecosystem witness network
+
 Authors
 =======
 
