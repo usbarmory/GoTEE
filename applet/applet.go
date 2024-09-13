@@ -35,6 +35,6 @@ func Exit() {
 // Crash forces a nil pointer dereference to terminate the applet through an
 // exception, it is meant to be used as runtime.Exit to yield to monitor on
 // runtime panic.
-func Crash() {
+func Crash(_ int32) {
 	*(*int)(nil) = 0
 }
