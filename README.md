@@ -48,7 +48,8 @@ The GoTEE [example](https://github.com/usbarmory/GoTEE-example)
 demonstrate concurrent operation of Go unikernels acting as Trusted OS,
 Trusted Applet and Main OS.
 
-> :warning: the Main OS can be any "rich" OS (e.g. Linux), TamaGo is simply
+> [!WARNING]
+> The Main OS can be any "rich" OS (e.g. Linux), TamaGo is simply
 > used for a self-contained example. The same applies to the Trusted Applet
 > which can be any bare metal application capable of running in user mode and
 > implementing GoTEE API, such as freestanding C or Rust programs.
@@ -110,14 +111,16 @@ Additionally the `linux` command can be used to spawn the
 [USB armory Debian base image](https://github.com/usbarmory/usbarmory-debian-base_image)
 as Non-secure main OS.
 
-> :warning: only USB armory Debian base image releases >= 20211129 are
+> [!NOTE]
+> Only USB armory Debian base image releases >= 20211129 are
 > supported for Non-secure operation.
 
 ![gotee](https://github.com/usbarmory/GoTEE/wiki/images/gotee.png)
 
 The example can be also executed under QEMU emulation.
 
-> :warning: emulated runs perform partial tests due to lack of full
+> [!NOTE]
+> Emulated runs perform partial tests due to lack of full
 > TrustZone/PMP support by QEMU.
 
 ```
@@ -172,7 +175,8 @@ git clone https://github.com/usbarmory/GoTEE-example
 cd GoTEE-example && export TARGET=usbarmory && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
-> :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
+> [!NOTE]
+> Replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
 > TA example, this requires Rust nightly and the `armv7a-none-eabi` toolchain.
 
 Final executables are created in the `bin` subdirectory,
@@ -197,7 +201,8 @@ git clone https://github.com/usbarmory/GoTEE-example
 cd GoTEE-example && export TARGET=sifive_u && make nonsecure_os_go && make trusted_applet_go && make trusted_os
 ```
 
-> :warning: replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
+> [!NOTE]
+> Replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
 > TA example, this requires Rust nightly and the `riscv64gc-unknown-none-elf`
 > toolchain.
 
