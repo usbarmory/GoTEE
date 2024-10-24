@@ -16,6 +16,11 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
+func lockstepHandler(ctx *ExecCtx) error {
+	ctx.Stop()
+	return nil
+}
+
 // SecureHandler is the default handler for exceptions raised by a secure
 // execution context to handle supported GoTEE system calls.
 func SecureHandler(ctx *ExecCtx) (err error) {
@@ -39,7 +44,14 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 			return errors.New("internal error")
 		}
 
-		ctx.Memory.Write(ctx.Memory.Start(), off, buf)
+		addr := ctx.Memory.Start()
+		ctx.Memory.Write(addr, off, buf)
+
+		if ctx.Shadow != nil {
+			ctx.Lockstep(true)
+			ctx.Shadow.Memory.Write(addr, off, buf)
+			ctx.Lockstep(false)
+		}
 	case syscall.SYS_RPC_REQ, syscall.SYS_RPC_RES:
 		if ctx.Server != nil {
 			err = ctx.rpc()

@@ -117,8 +117,8 @@ TEXT ·Exec(SB),$0-8
 	// restore general purpose registers
 	MOV	ExecCtx_X1(T0), X1
 	MOV	ExecCtx_X2(T0), X2
-	MOV	ExecCtx_X4(T0), TP
 	MOV	ExecCtx_X3(T0), X3
+	MOV	ExecCtx_X4(T0), TP
 	MOV	ExecCtx_X7(T0), X7
 	MOV	ExecCtx_X8(T0), X8
 	MOV	ExecCtx_X9(T0), X9

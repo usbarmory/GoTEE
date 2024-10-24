@@ -88,7 +88,15 @@ func (ctx *ExecCtx) Flush(errno int) (n int, err error) {
 		n = r
 	}
 
-	ctx.Memory.Write(ctx.Memory.Start(), off, ctx.out[0:n])
+	addr := ctx.Memory.Start()
+	ctx.Memory.Write(addr, off, ctx.out[0:n])
+
+	if ctx.Shadow != nil {
+		ctx.Lockstep(true)
+		ctx.Shadow.Memory.Write(addr, off, ctx.out[0:n])
+		ctx.Lockstep(false)
+	}
+
 	ctx.Ret(n)
 
 	ctx.out = ctx.out[n:]

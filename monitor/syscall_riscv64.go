@@ -26,16 +26,24 @@ func (ctx *ExecCtx) A2() uint {
 
 // Ret sets the return value for GoTEE secure monitor calls.
 func (ctx *ExecCtx) Ret(val interface{}) {
+	var x10 uint64
+
 	switch v := val.(type) {
 	case uint64:
-		ctx.X10 = v
+		x10 = v
 	case uint:
-		ctx.X10 = uint64(v)
+		x10 = uint64(v)
 	case int64:
-		ctx.X10 = uint64(v)
+		x10 = uint64(v)
 	case int:
-		ctx.X10 = uint64(v)
+		x10 = uint64(v)
 	default:
 		panic("invalid return type")
+	}
+
+	ctx.X10 = x10
+
+	if ctx.Shadow != nil {
+		ctx.Shadow.X10 = x10
 	}
 }

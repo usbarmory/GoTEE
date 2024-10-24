@@ -14,9 +14,11 @@ package monitor
 
 import (
 	"errors"
-	"log"
+	"fmt"
 	"net/rpc"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/usbarmory/tamago/arm"
@@ -123,8 +125,20 @@ type ExecCtx struct {
 	// Server, if not nil, serves RPC calls over syscalls
 	Server *rpc.Server
 
-	// Debug controls activation of debug logs
-	Debug bool
+	// Lockstep, if not nil, enables delayed execution of a redundant
+	// execution context (see Shadow) for fault detection.
+	//
+	// The Shadow context yields at each monitor call for comparison (see
+	// Equal), in case of a mismatch the primary context Run() raises an
+	// error.
+	//
+	// The Lockstep function is responsible for virtual addressing
+	// re-configuration (see arm.ConfigureMMU) to redirect each context to
+	// its physical memory.
+	Lockstep func(shadow bool)
+	// Shadow represents the redundant execution context allocated for
+	// lockstep execution, it is set by Run() when Lockstep is not nil.
+	Shadow *ExecCtx
 
 	// execution state
 	run bool
@@ -134,6 +148,8 @@ type ExecCtx struct {
 	ns bool
 	// executing g stack pointer
 	g_sp uint32
+	// shadow state
+	isShadow bool
 
 	// Read() buffer
 	in []byte
@@ -141,14 +157,19 @@ type ExecCtx struct {
 	out []byte
 }
 
-// Print logs the execution context registers.
-func (ctx *ExecCtx) Print() {
+// String returns the string form of the execution context registers.
+func (ctx *ExecCtx) String() string {
+	var sb strings.Builder
+
 	cpsr, spsr := ctx.Mode()
 
-	log.Printf("   r0:%.8x  r1:%.8x  r2:%.8x  r3:%.8x", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
-	log.Printf("   r4:%.8x  r5:%.8x  r6:%.8x  r7:%.8x", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
-	log.Printf("   r8:%.8x  r9:%.8x r10:%.8x r11:%.8x cpsr:%.8x (%s)", ctx.R8, ctx.R9, ctx.R10, ctx.R11, ctx.CPSR, arm.ModeName(cpsr))
-	log.Printf("  r12:%.8x  sp:%.8x  lr:%.8x  pc:%.8x spsr:%.8x (%s)", ctx.R12, ctx.R13, ctx.R14, ctx.R15, ctx.SPSR, arm.ModeName(spsr))
+	fmt.Fprintf(&sb, "\n")
+	fmt.Fprintf(&sb, "   r0:%.8x  r1:%.8x  r2:%.8x  r3:%.8x\n", ctx.R0, ctx.R1, ctx.R2, ctx.R3)
+	fmt.Fprintf(&sb, "   r4:%.8x  r5:%.8x  r6:%.8x  r7:%.8x\n", ctx.R4, ctx.R5, ctx.R6, ctx.R7)
+	fmt.Fprintf(&sb, "   r8:%.8x  r9:%.8x r10:%.8x r11:%.8x cpsr:%.8x (%s)\n", ctx.R8, ctx.R9, ctx.R10, ctx.R11, ctx.CPSR, arm.ModeName(cpsr))
+	fmt.Fprintf(&sb, "  r12:%.8x  sp:%.8x  lr:%.8x  pc:%.8x spsr:%.8x (%s)\n", ctx.R12, ctx.R13, ctx.R14, ctx.R15, ctx.SPSR, arm.ModeName(spsr))
+
+	return sb.String()
 }
 
 // NonSecure returns whether the execution context is loaded as non-secure.
@@ -182,10 +203,6 @@ func (ctx *ExecCtx) schedule() (err error) {
 	case arm.IRQ_MODE, arm.FIQ_MODE, arm.SVC_MODE, arm.MON_MODE:
 		return
 	default:
-		if ctx.Debug {
-			ctx.Print()
-		}
-
 		return errors.New(arm.ModeName(mode))
 	}
 
@@ -215,9 +232,34 @@ func (ctx *ExecCtx) Run() (err error) {
 		ap, ctx.Domain,
 	)
 
+	if ctx.Lockstep != nil {
+		switch {
+		case !ctx.isShadow && ctx.Shadow == nil:
+			shadow := *ctx
+			shadow.Handler = lockstepHandler
+			shadow.isShadow = true
+
+			ctx.Shadow = &shadow
+		case ctx.isShadow:
+			ctx.Lockstep(true)
+			defer ctx.Lockstep(false)
+		}
+	}
+
 	for ctx.run {
 		if err = ctx.schedule(); err != nil {
 			break
+		}
+
+		if ctx.Shadow != nil {
+			if err = ctx.Shadow.Run(); err != nil {
+				break
+			}
+
+			if !Equal(ctx, ctx.Shadow) {
+				err = errors.New("lockstep failure")
+				break
+			}
 		}
 
 		if ctx.Handler != nil {
@@ -307,4 +349,31 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	imx6ul.ARM.SetAttributes(uint32(mem.Start()), uint32(mem.End()), flags)
 
 	return
+}
+
+// Equal returns whether a and b have the same register state, it is meant to
+// be used for lockstep verification of primary and shadow execution contexts.
+func Equal(a, b *ExecCtx) bool {
+	return (a.R0 == b.R0 &&
+		a.R1 == b.R1 &&
+		a.R2 == b.R2 &&
+		a.R3 == b.R3 &&
+		a.R4 == b.R4 &&
+		a.R5 == b.R5 &&
+		a.R6 == b.R6 &&
+		a.R7 == b.R7 &&
+		a.R8 == b.R8 &&
+		a.R9 == b.R9 &&
+		a.R10 == b.R10 &&
+		a.R11 == b.R11 &&
+		a.R12 == b.R12 &&
+		a.R13 == b.R13 &&
+		a.R14 == b.R14 &&
+		a.R15 == b.R15 &&
+		a.CPSR == b.CPSR &&
+		a.SPSR == b.SPSR &&
+		a.FPSCR == b.FPSCR &&
+		a.FPEXC == b.FPEXC &&
+		slices.Equal(a.VFP, b.VFP) &&
+		slices.Equal(a.in, b.in))
 }

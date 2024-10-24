@@ -13,10 +13,12 @@
 package monitor
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net/rpc"
 	"runtime"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/usbarmory/tamago/dma"
@@ -94,8 +96,6 @@ type ExecCtx struct {
 
 	// floating-point registers
 	F [32]uint64 // F0-F31
-	// Floating-point Control and Status Register
-	FCSR uint64
 
 	// Memory is the executable allocated RAM
 	Memory *dma.Region
@@ -114,8 +114,20 @@ type ExecCtx struct {
 	// Server, if not nil, serves RPC calls over syscalls
 	Server *rpc.Server
 
-	// Debug controls activation of debug logs
-	Debug bool
+	// Lockstep, if not nil, enables delayed execution of a redundant
+	// execution context (see Shadow) for fault detection.
+	//
+	// The Shadow context yields at each monitor call for comparison (see
+	// Equal), in case of a mismatch the primary context Run() raises an
+	// error.
+	//
+	// The Lockstep function is responsible for virtual addressing
+	// re-configuration (see arm.ConfigureMMU) to redirect each context to
+	// its physical memory.
+	Lockstep func(shadow bool)
+	// Shadow represents the redundant execution context allocated for
+	// lockstep execution, it is set by Run() when Lockstep is not nil.
+	Shadow *ExecCtx
 
 	// execution state
 	run bool
@@ -125,6 +137,8 @@ type ExecCtx struct {
 	secure bool
 	// executing g stack pointer
 	g_sp uint64
+	// shadow state
+	isShadow bool
 
 	// Read() buffer
 	in []byte
@@ -132,18 +146,23 @@ type ExecCtx struct {
 	out []byte
 }
 
-// Print logs the execution context registers.
-func (ctx *ExecCtx) Print() {
+// String returns the string form of the execution context registers.
+func (ctx *ExecCtx) String() string {
+	var sb strings.Builder
+
 	code, _ := ctx.Cause()
 
-	log.Printf("   ra:%.16x  sp:%.16x  gp:%.16x  tp:%.16x", ctx.X1, ctx.X2, ctx.X3, ctx.X4)
-	log.Printf("   t0:%.16x  t1:%.16x  t2:%.16x  s0:%.16x", ctx.X5, ctx.X6, ctx.X7, ctx.X8)
-	log.Printf("   s1:%.16x  a0:%.16x  a1:%.16x  a2:%.16x", ctx.X9, ctx.X10, ctx.X11, ctx.X12)
-	log.Printf("   a3:%.16x  a4:%.16x  a5:%.16x  a6:%.16x", ctx.X13, ctx.X14, ctx.X15, ctx.X16)
-	log.Printf("   a7:%.16x  s2:%.16x  s3:%.16x  s4:%.16x", ctx.X17, ctx.X18, ctx.X19, ctx.X20)
-	log.Printf("   s5:%.16x  s6:%.16x  s7:%.16x  s8:%.16x", ctx.X21, ctx.X22, ctx.X23, ctx.X24)
-	log.Printf("   s9:%.16x s10:%.16x s11:%.16x  t3:%.16x", ctx.X25, ctx.X26, ctx.X27, ctx.X28)
-	log.Printf("   t4:%.16x  t5:%.16x  t6:%.16x  pc:%.16x err:%d", ctx.X29, ctx.X30, ctx.X31, ctx.PC, code)
+	fmt.Fprintf(&sb, "\n")
+	fmt.Fprintf(&sb, "   ra:%.16x  sp:%.16x  gp:%.16x  tp:%.16x\n", ctx.X1, ctx.X2, ctx.X3, ctx.X4)
+	fmt.Fprintf(&sb, "   t0:%.16x  t1:%.16x  t2:%.16x  s0:%.16x\n", ctx.X5, ctx.X6, ctx.X7, ctx.X8)
+	fmt.Fprintf(&sb, "   s1:%.16x  a0:%.16x  a1:%.16x  a2:%.16x\n", ctx.X9, ctx.X10, ctx.X11, ctx.X12)
+	fmt.Fprintf(&sb, "   a3:%.16x  a4:%.16x  a5:%.16x  a6:%.16x\n", ctx.X13, ctx.X14, ctx.X15, ctx.X16)
+	fmt.Fprintf(&sb, "   a7:%.16x  s2:%.16x  s3:%.16x  s4:%.16x\n", ctx.X17, ctx.X18, ctx.X19, ctx.X20)
+	fmt.Fprintf(&sb, "   s5:%.16x  s6:%.16x  s7:%.16x  s8:%.16x\n", ctx.X21, ctx.X22, ctx.X23, ctx.X24)
+	fmt.Fprintf(&sb, "   s9:%.16x s10:%.16x s11:%.16x  t3:%.16x\n", ctx.X25, ctx.X26, ctx.X27, ctx.X28)
+	fmt.Fprintf(&sb, "   t4:%.16x  t5:%.16x  t6:%.16x  pc:%.16x err:%d\n", ctx.X29, ctx.X30, ctx.X31, ctx.PC, code)
+
+	return sb.String()
 }
 
 // Secure returns whether the execution context is loaded as trusted applet.
@@ -188,10 +207,6 @@ func (ctx *ExecCtx) schedule() (err error) {
 	code, irq := ctx.Cause()
 
 	if code != riscv.EnvironmentCallFromS || irq {
-		if ctx.Debug {
-			ctx.Print()
-		}
-
 		return fmt.Errorf("%x", code)
 	}
 
@@ -208,10 +223,34 @@ func (ctx *ExecCtx) Run() (err error) {
 	ctx.run = true
 	ctx.stopped = make(chan struct{})
 	defer close(ctx.stopped)
+	if ctx.Lockstep != nil {
+		switch {
+		case !ctx.isShadow && ctx.Shadow == nil:
+			shadow := *ctx
+			shadow.Handler = lockstepHandler
+			shadow.isShadow = true
+
+			ctx.Shadow = &shadow
+		case ctx.isShadow:
+			ctx.Lockstep(true)
+			defer ctx.Lockstep(false)
+		}
+	}
 
 	for ctx.run {
 		if err = ctx.schedule(); err != nil {
 			break
+		}
+
+		if ctx.Shadow != nil {
+			if err = ctx.Shadow.Run(); err != nil {
+				break
+			}
+
+			if !Equal(ctx, ctx.Shadow) {
+				err = errors.New("lockstep failure")
+				break
+			}
 		}
 
 		if ctx.Handler != nil {
@@ -273,4 +312,44 @@ func (ctx *ExecCtx) pmp() (pmpEntry int, err error) {
 	pmpEntry += 1
 
 	return
+}
+
+// Equal returns whether a and b have the same register state, it is meant to
+// be used for lockstep verification of primary and shadow execution contexts.
+func Equal(a, b *ExecCtx) bool {
+	return (a.X1 == b.X1 &&
+		a.X2 == b.X2 &&
+		a.X3 == b.X3 &&
+		a.X4 == b.X4 &&
+		a.X5 == b.X5 &&
+		a.X6 == b.X6 &&
+		a.X7 == b.X7 &&
+		a.X8 == b.X8 &&
+		a.X9 == b.X9 &&
+		a.X10 == b.X10 &&
+		a.X11 == b.X11 &&
+		a.X12 == b.X12 &&
+		a.X13 == b.X13 &&
+		a.X14 == b.X14 &&
+		a.X15 == b.X15 &&
+		a.X16 == b.X16 &&
+		a.X17 == b.X17 &&
+		a.X18 == b.X18 &&
+		a.X19 == b.X19 &&
+		a.X20 == b.X20 &&
+		a.X21 == b.X21 &&
+		a.X22 == b.X22 &&
+		a.X23 == b.X23 &&
+		a.X24 == b.X24 &&
+		a.X25 == b.X25 &&
+		a.X26 == b.X26 &&
+		a.X27 == b.X27 &&
+		a.X28 == b.X28 &&
+		a.X29 == b.X29 &&
+		a.X30 == b.X30 &&
+		a.X31 == b.X31 &&
+		a.PC == b.PC &&
+		a.MCAUSE == b.MCAUSE &&
+		a.F == b.F &&
+		slices.Equal(a.in, b.in))
 }
