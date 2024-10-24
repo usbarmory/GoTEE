@@ -4,6 +4,15 @@
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
 
+// Package applet provides user mode initialization for bare metal Go
+// unikernels written using the TamaGo framework.
+//
+// The package supports trusted applet execution under a GoTEE compatible
+// supervisor, linking essential runtime functions with required system calls.
+//
+// This package is only meant to be used with `GOOS=tamago` as supported by the
+// TamaGo framework for bare metal Go on ARM/RISC-V SoCs, see
+// https://github.com/usbarmory/tamago.
 package applet
 
 import (
@@ -11,6 +20,11 @@ import (
 
 	"github.com/usbarmory/GoTEE/syscall"
 )
+
+//go:linkname hwinit runtime.hwinit
+func hwinit() {
+	initTimers()
+}
 
 //go:linkname printk runtime.printk
 func printk(c byte) {
