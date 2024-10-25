@@ -92,6 +92,7 @@ exit, quit                                       # close session
 gotee                                            # TrustZone example w/ TamaGo unikernels
 help                                             # this help
 linux           <uSD|eMMC>                       # boot NonSecure USB armory Debian base image
+lockstep        <fault %>                        # tandem applet example w/ fault injection
 peek            <hex offset> <size>              # memory display (use with caution)
 poke            <hex offset> <hex value>         # memory write   (use with caution)
 reboot                                           # reset device
