@@ -117,9 +117,9 @@ type ExecCtx struct {
 	// Lockstep, if not nil, enables delayed execution of a redundant
 	// execution context (see Shadow) for fault detection.
 	//
-	// The Shadow context yields at each monitor call for comparison (see
-	// Equal), in case of a mismatch the primary context Run() raises an
-	// error.
+	// The Shadow context yields at each monitor call for opportunistic
+	// comparison, in case of a mismatch (see Equal) the primary context
+	// Run() raises an error.
 	//
 	// The Lockstep function is responsible for virtual addressing
 	// re-configuration (see arm.ConfigureMMU) to redirect each context to
