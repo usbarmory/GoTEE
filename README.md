@@ -25,7 +25,7 @@ Features
 
 * Isolated execution context under ARM TrustZone Normal World (NonSecure)
 
-* Isolated execution context under RISCV Supervisor Mode (S-Mode)
+* Isolated execution context under RISC-V Supervisor Mode (S-Mode)
 
 * Opportunistic soft lockstep for fault detection
 
