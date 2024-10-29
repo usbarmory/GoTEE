@@ -18,6 +18,19 @@ in ARM TrustZone Normal World or RISC-V S-mode such as Linux.
 
 <img src="https://github.com/usbarmory/GoTEE/wiki/images/diagram.jpg" width="350">
 
+Features
+========
+
+* Isolated execution context in ARM User mode
+
+* Isolated execution context under ARM TrustZone Normal World (NonSecure)
+
+* Isolated execution context under RISCV Supervisor Mode (S-Mode)
+
+* Opportunistic soft lockstep for fault detection
+
+* API for Trusted OS implementation (Syscall, JSON-RPC and exception handlers)
+
 Documentation
 =============
 
