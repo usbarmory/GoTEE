@@ -136,8 +136,9 @@ type ExecCtx struct {
 	// re-configuration (see arm.ConfigureMMU) to redirect each context to
 	// its physical memory.
 	Lockstep func(shadow bool)
-	// Shadow represents the redundant execution context allocated for
-	// lockstep execution, it is set by Run() when Lockstep is not nil.
+	// Shadow represents a redundant execution context for opportunistic
+	// soft lockstep, it is automatically set at first Run() when a valid
+	// Lockstep function is defined.
 	Shadow *ExecCtx
 
 	// execution state
@@ -148,8 +149,6 @@ type ExecCtx struct {
 	ns bool
 	// executing g stack pointer
 	g_sp uint32
-	// shadow state
-	isShadow bool
 
 	// Read() buffer
 	in []byte
@@ -232,18 +231,8 @@ func (ctx *ExecCtx) Run() (err error) {
 		ap, ctx.Domain,
 	)
 
-	if ctx.Lockstep != nil {
-		switch {
-		case !ctx.isShadow && ctx.Shadow == nil:
-			shadow := *ctx
-			shadow.Handler = lockstepHandler
-			shadow.isShadow = true
-
-			ctx.Shadow = &shadow
-		case ctx.isShadow:
-			ctx.Lockstep(true)
-			defer ctx.Lockstep(false)
-		}
+	if ctx.Lockstep != nil && ctx.Shadow == nil {
+		ctx.Shadow = ctx.castShadow()
 	}
 
 	for ctx.run {
@@ -252,12 +241,7 @@ func (ctx *ExecCtx) Run() (err error) {
 		}
 
 		if ctx.Shadow != nil {
-			if err = ctx.Shadow.Run(); err != nil {
-				break
-			}
-
-			if !Equal(ctx, ctx.Shadow) {
-				err = errors.New("lockstep failure")
+			if err = ctx.Shadow.lockstep(); err != nil {
 				break
 			}
 		}
@@ -351,8 +335,7 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 	return
 }
 
-// Equal returns whether a and b have the same register state, it is meant to
-// be used for lockstep verification of primary and shadow execution contexts.
+// Equal returns whether a and b holds the same register state.
 func Equal(a, b *ExecCtx) bool {
 	return (a.R0 == b.R0 &&
 		a.R1 == b.R1 &&

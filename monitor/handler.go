@@ -16,11 +16,6 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
-func lockstepHandler(ctx *ExecCtx) error {
-	ctx.Stop()
-	return nil
-}
-
 // SecureHandler is the default handler for exceptions raised by a secure
 // execution context to handle supported GoTEE system calls.
 func SecureHandler(ctx *ExecCtx) (err error) {
