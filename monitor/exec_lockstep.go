@@ -18,6 +18,9 @@ func (ctx *ExecCtx) castShadow() *ExecCtx {
 	return &shadow
 }
 
+// lockstep runs a shadow execution context for a single scheduling cycle, an
+// error is raised when the resulting state differs from the primary execution
+// context.
 func (ctx *ExecCtx) lockstep() (err error) {
 	ctx.Lockstep(true)
 	defer ctx.Lockstep(false)
