@@ -21,15 +21,11 @@ in ARM TrustZone Normal World or RISC-V S-mode such as Linux.
 Features
 ========
 
-* Isolated execution context in ARM User mode
+* [Isolated execution contexts](https://github.com/usbarmory/GoTEE/wiki/Trusted-OS-and-Applet-execution) for ARM User mode, TrustZone Normal World or RISC-V Supervisor Mode
 
-* Isolated execution context under ARM TrustZone Normal World (NonSecure)
+* [Opportunistic soft lockstep for fault detection](https://github.com/usbarmory/GoTEE/wiki/Examples#opportunistic-soft-lockstep)
 
-* Isolated execution context under RISC-V Supervisor Mode (S-Mode)
-
-* Opportunistic soft lockstep for fault detection
-
-* API for Trusted OS implementation (Syscall, JSON-RPC and exception handlers)
+* [API for Trusted OS implementation](https://github.com/usbarmory/GoTEE/wiki/System-Calls#gotee-system-calls) (Syscall, JSON-RPC and exception handlers)
 
 Documentation
 =============
