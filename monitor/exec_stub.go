@@ -48,6 +48,12 @@ func (ctx *ExecCtx) Cause() (code uint64, irq bool)
 // Mode (ARM) returns the processor mode.
 func (ctx *ExecCtx) Mode() (current int, saved int)
 
+// Schedule runs the execution context until an exception is caught.
+//
+// Unlike Run() the function does not invoke the context Handler(), there
+// exceptions and system or monitor calls are not handled.
+func (ctx *ExecCtx) Schedule() (err error) {
+
 // Run starts the execution context and handles system or monitor calls. The
 // execution yields back to the invoking Go runtime only when exceptions are
 // caught.

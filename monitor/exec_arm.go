@@ -183,7 +183,11 @@ func (ctx *ExecCtx) Mode() (current int, saved int) {
 	return
 }
 
-func (ctx *ExecCtx) schedule() (err error) {
+// Schedule runs the execution context until an exception is caught.
+//
+// Unlike Run() the function does not invoke the context Handler(), there
+// exceptions and system or monitor calls are not handled.
+func (ctx *ExecCtx) Schedule() (err error) {
 	mux.Lock()
 	defer mux.Unlock()
 
@@ -236,12 +240,12 @@ func (ctx *ExecCtx) Run() (err error) {
 	}
 
 	for ctx.run {
-		if err = ctx.schedule(); err != nil {
+		if err = ctx.Schedule(); err != nil {
 			break
 		}
 
 		if ctx.Shadow != nil {
-			if err = ctx.Shadow.lockstep(); err != nil {
+			if err = ctx.Shadow.lockstep(ctx); err != nil {
 				break
 			}
 		}

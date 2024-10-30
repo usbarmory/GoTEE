@@ -10,10 +10,10 @@ import (
 	"errors"
 )
 
+// castShadow builds a shadow execution context suitable for lockstep()
 func (ctx *ExecCtx) castShadow() *ExecCtx {
 	shadow := *ctx
 	shadow.Handler = nil
-	shadow.Shadow = ctx
 
 	return &shadow
 }
@@ -21,21 +21,21 @@ func (ctx *ExecCtx) castShadow() *ExecCtx {
 // lockstep runs a shadow execution context for a single scheduling cycle, an
 // error is raised when the resulting state differs from the primary execution
 // context.
-func (ctx *ExecCtx) lockstep() (err error) {
-	ctx.Lockstep(true)
-	defer ctx.Lockstep(false)
+func (shadow *ExecCtx) lockstep(primary *ExecCtx) (err error) {
+	shadow.Lockstep(true)
+	defer shadow.Lockstep(false)
 
-	if err = ctx.schedule(); err != nil {
+	if err = shadow.Schedule(); err != nil {
 		return
 	}
 
-	if ctx.Handler != nil {
-		if err = ctx.Handler(ctx); err != nil {
+	if shadow.Handler != nil {
+		if err = shadow.Handler(primary); err != nil {
 			return
 		}
 	}
 
-	if !Equal(ctx, ctx.Shadow) {
+	if !Equal(primary, shadow) {
 		return errors.New("lockstep failure")
 	}
 
