@@ -14,7 +14,7 @@
 package monitor
 
 // stub for pkg.go.dev coverage
-// +build !tamago
+//go:build !tamago
 
 // Exec allows execution of an executable in Secure user mode or NonSecure
 // system mode (ARM) or Supervisor mode (RISC-V).
