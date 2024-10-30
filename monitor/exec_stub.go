@@ -4,6 +4,9 @@
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
 
+// stub for pkg.go.dev coverage
+//go:build !tamago
+
 // Package monitor provides supervisor support for TamaGo unikernels to allow
 // scheduling of Secure user mode or NonSecure system mode (ARM) or Supervisor
 // mode (RISC-V) executables.
@@ -12,9 +15,6 @@
 // TamaGo framework for bare metal Go on ARM/RISC-V SoCs, see
 // https://github.com/usbarmory/tamago.
 package monitor
-
-// stub for pkg.go.dev coverage
-//go:build !tamago
 
 // Exec allows execution of an executable in Secure user mode or NonSecure
 // system mode (ARM) or Supervisor mode (RISC-V).
