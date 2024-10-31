@@ -52,7 +52,7 @@ func (ctx *ExecCtx) Mode() (current int, saved int)
 //
 // Unlike Run() the function does not invoke the context Handler(), there
 // exceptions and system or monitor calls are not handled.
-func (ctx *ExecCtx) Schedule() (err error) {
+func (ctx *ExecCtx) Schedule() (err error)
 
 // Run starts the execution context and handles system or monitor calls. The
 // execution yields back to the invoking Go runtime only when exceptions are

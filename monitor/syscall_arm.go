@@ -24,7 +24,8 @@ func (ctx *ExecCtx) A2() uint {
 	return uint(ctx.R2)
 }
 
-// Ret sets the return value for GoTEE secure monitor calls.
+// Ret sets the return value for GoTEE secure monitor calls updating the
+// relevant execution context registers, including its Shadow if present.
 func (ctx *ExecCtx) Ret(val interface{}) {
 	var r0 uint32
 	var r1 uint32

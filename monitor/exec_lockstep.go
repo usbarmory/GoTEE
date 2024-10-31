@@ -10,21 +10,20 @@ import (
 	"errors"
 )
 
-// castShadow builds a shadow execution context suitable for lockstep()
-func (ctx *ExecCtx) castShadow() *ExecCtx {
-	shadow := *ctx
-	shadow.Handler = nil
+// Clone returns a duplicate execution context suitable for lockstep operation
+// (see Shadow field), the original Handler field is not carried over in the
+// shadow copy.
+func (ctx *ExecCtx) Clone() (shadow *ExecCtx) {
+	s := *ctx
+	s.Handler = nil
 
-	return &shadow
+	return &s
 }
 
 // lockstep runs a shadow execution context for a single scheduling cycle, an
 // error is raised when the resulting state differs from the primary execution
 // context.
 func (shadow *ExecCtx) lockstep(primary *ExecCtx) (err error) {
-	shadow.Lockstep(true)
-	defer shadow.Lockstep(false)
-
 	if err = shadow.Schedule(); err != nil {
 		return
 	}

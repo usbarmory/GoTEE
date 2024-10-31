@@ -40,6 +40,22 @@ func (ctx *ExecCtx) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
+// Poke writes buffer contents to the execution context memory, including its
+// Shadow if present, at a given offset.
+func (ctx *ExecCtx) Poke(off int, buf []byte) {
+	if ctx.MMU != nil {
+		ctx.MMU()
+	}
+
+	addr := ctx.Memory.Start()
+	ctx.Memory.Write(addr, off, buf)
+
+	if ctx.Shadow != nil {
+		ctx.Shadow.Poke(off, buf)
+		ctx.MMU()
+	}
+}
+
 // Close has no effect.
 func (ctx *ExecCtx) Close() error {
 	return nil
@@ -88,15 +104,7 @@ func (ctx *ExecCtx) Flush(errno int) (n int, err error) {
 		n = r
 	}
 
-	addr := ctx.Memory.Start()
-	ctx.Memory.Write(addr, off, ctx.out[0:n])
-
-	if ctx.Shadow != nil {
-		ctx.Lockstep(true)
-		ctx.Shadow.Memory.Write(addr, off, ctx.out[0:n])
-		ctx.Lockstep(false)
-	}
-
+	ctx.Poke(off, ctx.out[0:n])
 	ctx.Ret(n)
 
 	ctx.out = ctx.out[n:]

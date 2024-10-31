@@ -107,26 +107,24 @@ type ExecCtx struct {
 	// scheduling to grant execution context access to its own memory.
 	PMP func(ctx *ExecCtx, pmpEntry int) error
 
-	// Handler, if not nil, handles syscalls
+	// MMU, if not nil, is called before each execution context Schedule()
+	// or Write() to allow virtual addressing re-configuration as needed
+	// (see arm.ConfigureMMU).
+	MMU func()
+
+	// Handler, if not nil, handles context switch calls
 	Handler func(ctx *ExecCtx) error
 
 	// Server, if not nil, serves RPC calls over syscalls
 	Server *rpc.Server
 
-	// Lockstep, if not nil, enables delayed execution of a redundant
-	// execution context (see Shadow) for fault detection.
-	//
-	// The Shadow context yields at each monitor call for opportunistic
-	// comparison, in case of a mismatch (see Equal) the primary context
-	// Run() raises an error.
-	//
-	// The Lockstep function is responsible for virtual addressing
-	// re-configuration (see arm.ConfigureMMU) to redirect each context to
-	// its physical memory.
-	Lockstep func(shadow bool)
 	// Shadow represents a redundant execution context for opportunistic
-	// soft lockstep, it is automatically set at first Run() when a valid
-	// Lockstep function is defined.
+	// soft lockstep, it is meant to be created with Clone() and once set
+	// enables its delayed lockstep execution for fault detection.
+	//
+	// When set Run() will Schedule() the primary and Shadow context for
+	// opportunistic comparison, in case of a mismatch (see Equal) the
+	// primary context Run() raises an error.
 	Shadow *ExecCtx
 
 	// execution state
@@ -200,7 +198,12 @@ func (ctx *ExecCtx) Schedule() (err error) {
 		}
 	}
 
-	// execute applet
+	// reconfigure MMU as needed
+	if ctx.MMU != nil {
+		ctx.MMU()
+	}
+
+	// execute context
 	Exec(ctx)
 
 	// restore default handlers
@@ -226,17 +229,16 @@ func (ctx *ExecCtx) Run() (err error) {
 	ctx.stopped = make(chan struct{})
 	defer close(ctx.stopped)
 
-	if ctx.Lockstep != nil && ctx.Shadow == nil {
-		ctx.Shadow = ctx.castShadow()
-	}
-
 	for ctx.run {
 		if err = ctx.Schedule(); err != nil {
 			break
 		}
 
 		if ctx.Shadow != nil {
-			if err = ctx.Shadow.lockstep(ctx); err != nil {
+			err = ctx.Shadow.lockstep(ctx)
+			ctx.MMU()
+
+			if err != nil {
 				break
 			}
 		}

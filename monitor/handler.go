@@ -39,14 +39,7 @@ func SecureHandler(ctx *ExecCtx) (err error) {
 			return errors.New("internal error")
 		}
 
-		addr := ctx.Memory.Start()
-		ctx.Memory.Write(addr, off, buf)
-
-		if ctx.Shadow != nil {
-			ctx.Lockstep(true)
-			ctx.Shadow.Memory.Write(addr, off, buf)
-			ctx.Lockstep(false)
-		}
+		ctx.Poke(off, buf)
 	case syscall.SYS_RPC_REQ, syscall.SYS_RPC_RES:
 		if ctx.Server != nil {
 			err = ctx.rpc()
