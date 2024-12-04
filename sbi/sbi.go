@@ -9,7 +9,7 @@
 // monitor.Exec (see monitor package).
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=riscv64` as
-// supported by the TamaGo framework for bare metal Go on ARM SoCs, see
+// supported by the TamaGo framework for bare metal Go, see
 // https://github.com/usbarmory/tamago.
 package sbi
 
