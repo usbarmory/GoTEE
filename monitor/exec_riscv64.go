@@ -1,5 +1,4 @@
 // Copyright (c) WithSecure Corporation
-// https://foundry.withsecure.com
 //
 // Use of this source code is governed by the license
 // that can be found in the LICENSE file.
@@ -21,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/usbarmory/tamago/dma"
-	"github.com/usbarmory/tamago/riscv"
+	"github.com/usbarmory/tamago/riscv64"
 	"github.com/usbarmory/tamago/soc/sifive/fu540"
 )
 
@@ -38,7 +37,7 @@ var mux sync.Mutex
 func monitor()
 
 func init() {
-	if err := fu540.RV64.WritePMP(0, (1<<64)-1, true, true, true, riscv.PMP_A_TOR, false); err != nil {
+	if err := fu540.RV64.WritePMP(0, (1<<64)-1, true, true, true, riscv64.PMP_A_TOR, false); err != nil {
 		panic("could not set PMP default entry")
 	}
 }
@@ -207,11 +206,11 @@ func (ctx *ExecCtx) Schedule() (err error) {
 	Exec(ctx)
 
 	// restore default handlers
-	fu540.RV64.SetExceptionHandler(riscv.DefaultExceptionHandler)
+	fu540.RV64.SetExceptionHandler(riscv64.DefaultExceptionHandler)
 
 	code, irq := ctx.Cause()
 
-	if code != riscv.EnvironmentCallFromS || irq {
+	if code != riscv64.EnvironmentCallFromS || irq {
 		return fmt.Errorf("%x", code)
 	}
 
@@ -291,12 +290,12 @@ func Load(entry uint, mem *dma.Region, secure bool) (ctx *ExecCtx, err error) {
 
 // pmp grants context access to its own memory.
 func (ctx *ExecCtx) pmp() (pmpEntry int, err error) {
-	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.Start()), false, false, false, riscv.PMP_A_OFF, false); err != nil {
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.Start()), false, false, false, riscv64.PMP_A_OFF, false); err != nil {
 		return
 	}
 	pmpEntry += 1
 
-	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.End()), true, true, true, riscv.PMP_A_TOR, false); err != nil {
+	if err = fu540.RV64.WritePMP(pmpEntry, uint64(ctx.Memory.End()), true, true, true, riscv64.PMP_A_TOR, false); err != nil {
 		return
 	}
 	pmpEntry += 1

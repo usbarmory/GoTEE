@@ -235,10 +235,10 @@ Authors
 =======
 
 Andrea Barisani  
-andrea.barisani@withsecure.com | andrea@inversepath.com  
+andrea@inversepath.com  
 
 Andrej Rosano  
-andrej.rosano@withsecure.com | andrej@inversepath.com  
+andrej@inversepath.com  
 
 License
 =======
