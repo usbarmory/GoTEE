@@ -30,6 +30,8 @@ Features
 Documentation
 =============
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/usbarmory/GoTEE.svg)](https://pkg.go.dev/github.com/usbarmory/GoTEE)
+
 The main documentation, which includes a tutorial, can be found on the
 [project wiki](https://github.com/usbarmory/GoTEE/wiki).
 
