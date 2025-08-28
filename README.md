@@ -246,7 +246,7 @@ License
 =======
 
 GoTEE | https://github.com/usbarmory/GoTEE  
-Copyright (c) WithSecure Corporation
+Copyright (c) The GoTEE authors. All Rights Reserved.
 
 These source files are distributed under the BSD-style license found in the
 [LICENSE](https://github.com/usbarmory/GoTEE/blob/master/LICENSE) file.
