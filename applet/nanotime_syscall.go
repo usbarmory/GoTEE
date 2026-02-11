@@ -13,8 +13,8 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
-//go:linkname nanotime1 runtime.nanotime1
-func nanotime1() int64 {
+//go:linkname nanotime runtime/goos.Nanotime
+func nanotime() int64 {
 	// Supervisor request, used when PL0 has no direct access to timers or
 	// when indirection is desired (e.g.  soft lockstep).
 	return syscall.Nanotime()

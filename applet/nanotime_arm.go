@@ -15,8 +15,8 @@ import (
 
 var ARM = &arm.CPU{}
 
-//go:linkname nanotime1 runtime.nanotime1
-func nanotime1() int64 {
+//go:linkname nanotime runtime/goos.Nanotime
+func nanotime() int64 {
 	return ARM.GetTime()
 }
 

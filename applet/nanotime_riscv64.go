@@ -18,8 +18,8 @@ var CLINT = &clint.CLINT{
 	RTCCLK: 1000000,
 }
 
-//go:linkname nanotime1 runtime.nanotime1
-func nanotime1() int64 {
+//go:linkname nanotime runtime/goos.Nanotime
+func nanotime() int64 {
 	return CLINT.Nanotime()
 }
 

@@ -19,22 +19,22 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
-//go:linkname hwinit runtime.hwinit1
+//go:linkname hwinit runtime/goos.Hwinit1
 func hwinit() {
 	initTimers()
 }
 
-//go:linkname printk runtime.printk
+//go:linkname printk runtime/goos.Printk
 func printk(c byte) {
 	syscall.Print(c)
 }
 
-//go:linkname initRNG runtime.initRNG
+//go:linkname initRNG runtime/goos.InitRNG
 func initRNG() {
 	// no initialization required in supervised mode
 }
 
-//go:linkname getRandomData runtime.getRandomData
+//go:linkname getRandomData runtime/goos.GetRandomData
 func getRandomData(b []byte) {
 	syscall.GetRandom(b, uint(len(b)))
 }
