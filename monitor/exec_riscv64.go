@@ -183,7 +183,7 @@ func (ctx *ExecCtx) Schedule() (err error) {
 	defer mux.Unlock()
 
 	// set monitor handlers
-	riscv64.SystemExceptionHandler = monitor
+	fu540.RV64.SetExceptionHandler(monitor)
 
 	// grant execution context access to its own memory
 	if pmpEntry, err = ctx.pmp(); err != nil {
@@ -206,7 +206,7 @@ func (ctx *ExecCtx) Schedule() (err error) {
 	Exec(ctx)
 
 	// restore default handlers
-	riscv64.SystemExceptionHandler = riscv64.DefaultExceptionHandler
+	fu540.RV64.SetExceptionHandler(riscv64.DefaultExceptionHandler)
 
 	code, irq := ctx.Cause()
 
