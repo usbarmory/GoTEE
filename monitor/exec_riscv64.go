@@ -174,7 +174,7 @@ func (ctx *ExecCtx) Cause() (code uint64, irq bool) {
 
 // Schedule runs the execution context until an exception is caught.
 //
-// Unlike Run() the function does not invoke the context Handler(), there
+// Unlike Run() the function does not invoke the context Handler(), therefore
 // exceptions and system or monitor calls are not handled.
 func (ctx *ExecCtx) Schedule() (err error) {
 	var pmpEntry int

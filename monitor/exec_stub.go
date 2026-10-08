@@ -48,7 +48,7 @@ func (ctx *ExecCtx) Mode() (current int, saved int)
 
 // Schedule runs the execution context until an exception is caught.
 //
-// Unlike Run() the function does not invoke the context Handler(), there
+// Unlike Run() the function does not invoke the context Handler(), therefore
 // exceptions and system or monitor calls are not handled.
 func (ctx *ExecCtx) Schedule() (err error)
 
