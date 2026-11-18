@@ -134,6 +134,8 @@ type ExecCtx struct {
 	secure bool
 	// executing g stack pointer
 	g_sp uint64
+	// executing g registers saved by Exec
+	host [32]uint64
 
 	// Read() buffer
 	in []byte

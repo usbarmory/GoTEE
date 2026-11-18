@@ -15,7 +15,7 @@ func (ctx *ExecCtx) TransferRegion() (off int, n int, err error) {
 	n = int(ctx.A2())
 	s := int(ctx.Memory.Size())
 
-	if valid := (off >= 0) && (n <= s) && (off < s-n); !valid {
+	if valid := (off >= 0) && (n <= s) && (off < s-n); n < 0 || !valid {
 		err = errors.New("invalid offset")
 	}
 
