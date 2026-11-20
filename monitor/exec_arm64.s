@@ -110,12 +110,18 @@ TEXT ·Exec(SB),$0-8
 	ERET
 
 TEXT ·monitor(SB),NOSPLIT|NOFRAME,$0
-	STP	(R0, R1), -16(RSP)
-
 	// restore context pointer from Thread ID (TPIDR_EL1)
-	MRS	TPIDR_EL1, R0
+	MRS	TPIDR_EL1, R18_PLATFORM
 
 	// save general purpose registers
+	STP	(R0, R1), ExecCtx_R0(R18_PLATFORM)
+	MOVD	R18_PLATFORM, R0
+
+	// save R18, pushed by the trampoline (see arm64.SetLowerVectorTable)
+	MOVD	(RSP), R1
+	MOVD	R1, ExecCtx_R18(R0)
+	ADD	$16, RSP
+
 	STP	(R2, R3), ExecCtx_R2(R0)
 	STP	(R4, R5), ExecCtx_R4(R0)
 	STP	(R6, R7), ExecCtx_R6(R0)
@@ -124,17 +130,13 @@ TEXT ·monitor(SB),NOSPLIT|NOFRAME,$0
 	STP	(R12, R13), ExecCtx_R12(R0)
 	STP	(R14, R15), ExecCtx_R14(R0)
 	STP	(R16, R17), ExecCtx_R16(R0)
-	STP	(R18_PLATFORM, R19), ExecCtx_R18(R0)
+	MOVD	R19, ExecCtx_R19(R0)
 	STP	(R20, R21), ExecCtx_R20(R0)
 	STP	(R22, R23), ExecCtx_R22(R0)
 	STP	(R24, R25), ExecCtx_R24(R0)
 	STP	(R26, R27), ExecCtx_R26(R0)
 	STP	(g, R29), ExecCtx_R28(R0)
 	MOVD	R30, ExecCtx_R30(R0)
-
-	// save R0, R1
-	LDP	-16(RSP), (R2, R3)
-	STP	(R2, R3), ExecCtx_R0(R0)
 
 	// save stack pointer
 	MRS	SP_EL0, R1
