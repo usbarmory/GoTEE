@@ -18,8 +18,8 @@
 // The exception handling uses a Thread ID Register (TPIDRPRW) in a similar
 // manner to Go own use of TLS (https://golang.org/src/runtime/tls_arm.s).
 //
-// With respect to TrustZone the handler must save and restore the following
-// registers between Secure <> NonSecure World switches:
+// The handler must save and restore the following registers between context
+// switches:
 //
 //  • r0-r15, CPSR of Supervisor, System/User modes:
 //
@@ -74,7 +74,7 @@ TEXT ·Exec(SB),$0-4
 	MCR	15, 0, R1, C1, C1, 0
 
 restore:
-	/* restore VFP registers */
+	// restore VFP registers
 	MOVW	ExecCtx_VFP(R0), R1
 	WORD	$0xecb10b20			// vldm r1!, {d0-d15}
 	WORD	$0xecf10b20			// vldm r1!, {d15-d31}
@@ -152,7 +152,7 @@ switch:
 	WORD	$0xe16ff000			/* msr SPSR, R0 */		\
 	WORD	$0xf102001f			/* cps 0x1f */			\
 										\
-	/* restore g registers */						\
+	/* restore caller registers */						\
 	MOVW		ExecCtx_g_sp(R1), R13					\
 	MOVM.IA.W	(R13), [R0-R12, R14]	/* pop {r0-r12, r14} */		\
 										\

@@ -89,7 +89,7 @@ type ExecCtx struct {
 	R7  uint32
 	R8  uint32
 	R9  uint32
-	R10 uint32
+	R10 uint32 // g
 	R11 uint32
 	R12 uint32
 	R13 uint32 // SP
@@ -106,6 +106,7 @@ type ExecCtx struct {
 
 	ExceptionVector int
 
+	// Floating-point registers
 	VFP   []uint64 // d0-d31
 	FPSCR uint32
 	FPEXC uint32

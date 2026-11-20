@@ -37,20 +37,20 @@ TEXT ·Nanotime(SB),$0-8
 	MOVW	R1, ret_hi+4(FP)
 	RET
 
-// func Write(trap uint, b []byte, n uint)
+// func Write(trap uint, p []byte, n uint)
 TEXT ·Write(SB),$0-20
 	MOVW	trap+0(FP), R0
-	MOVW	b+4(FP), R1
+	MOVW	p+4(FP), R1
 	MOVW	n+16(FP), R2
 
 	SWI	$0
 
 	RET
 
-// func Read(trap uint, b []byte, n uint) int
+// func Read(trap uint, p []byte, n uint) int
 TEXT ·Read(SB),$0-24
 	MOVW	trap+0(FP), R0
-	MOVW	b+4(FP), R1
+	MOVW	p+4(FP), R1
 	MOVW	n+16(FP), R2
 
 	SWI	$0

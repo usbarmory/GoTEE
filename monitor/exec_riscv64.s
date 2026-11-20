@@ -18,8 +18,8 @@
 // The exception handling uses the RISC-V Machine Scratch Register (mscratch)
 // in a similar manner to Go own use of TLS (https://golang.org/src/runtime/tls_arm.s).
 //
-// The handler must save and restore the following registers between Machine <>
-// Supervisor mode switches:
+// The handler must save and restore the following registers between context
+// switches:
 //
 //  • x1-x31 general purpose registers:
 //
@@ -37,7 +37,7 @@ TEXT ·Exec(SB),$0-8
 	// get argument pointer
 	MOV	ctx+0(FP), T0
 
-	// save host registers
+	// save caller registers
 	MOV	X1, (1*8)+ExecCtx_host(T0)
 	MOV	X3, (3*8)+ExecCtx_host(T0)
 	MOV	TP, (4*8)+ExecCtx_host(T0)
@@ -143,6 +143,7 @@ TEXT ·Exec(SB),$0-8
 	MOV	ExecCtx_X30(T0), X30
 	MOV	ExecCtx_X31(T0), X31
 
+	// restore PC
 	MOV	ExecCtx_PC(T0), T1
 	CSRW(t1, mepc)
 
@@ -238,7 +239,7 @@ TEXT ·monitor(SB),NOSPLIT|NOFRAME,$0
 	CSRR(mcause, t1)
 	MOV	T1, ExecCtx_MCAUSE(T0)
 
-	// restore g registers
+	// restore caller registers
 	MOV	ExecCtx_g_sp(T0), SP
 	MOV	(1*8)+ExecCtx_host(T0), X1
 	MOV	(3*8)+ExecCtx_host(T0), X3

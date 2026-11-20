@@ -41,13 +41,12 @@ TEXT ·Nanotime(SB),$0-8
 	ECALL
 
 	MOV	A0, ret+0(FP)
-
 	RET
 
-// func Write(trap uint, b []byte, n uint)
+// func Write(trap uint, p []byte, n uint)
 TEXT ·Write(SB),$0-40
 	MOV	trap+0(FP), A0
-	MOV	b+8(FP), A1
+	MOV	p+8(FP), A1
 	MOV	n+32(FP), A2
 
 	MOV	$0, A7
@@ -55,15 +54,14 @@ TEXT ·Write(SB),$0-40
 
 	RET
 
-// func Read(trap uint, b []byte, n uint) int
+// func Read(trap uint, p []byte, n uint) int
 TEXT ·Read(SB),$0-48
 	MOV	trap+0(FP), A0
-	MOV	b+8(FP), A1
+	MOV	p+8(FP), A1
 	MOV	n+32(FP), A2
 
 	MOV	$0, A7
 	ECALL
 
 	MOV	A0, ret+40(FP)
-
 	RET

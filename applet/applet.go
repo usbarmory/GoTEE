@@ -19,8 +19,11 @@ import (
 	"github.com/usbarmory/GoTEE/syscall"
 )
 
-//go:linkname hwinit runtime/goos.Hwinit1
-func hwinit() {
+//go:linkname hwinit0 runtime/goos.Hwinit0
+func hwinit0() {}
+
+//go:linkname hwinit1 runtime/goos.Hwinit1
+func hwinit1() {
 	initTimers()
 }
 

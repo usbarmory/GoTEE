@@ -92,7 +92,7 @@ type ExecCtx struct {
 	// Machine Cause
 	MCAUSE uint64
 
-	// floating-point registers
+	// Floating-point registers
 	F [32]uint64 // F0-F31
 
 	// Memory is the executable allocated RAM
