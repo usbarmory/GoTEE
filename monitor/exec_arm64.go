@@ -7,7 +7,8 @@
 // scheduling of unprivileged executables (EL0) from a privileged level (EL1).
 //
 // The build tag `el1secure` controls whether the unikernel is started as EL1
-// Secure or Nonsecure.
+// Secure or Nonsecure and must be selected accordingly by the application
+// importing this package.
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm64` as
 // supported by the TamaGo framework for bare metal Go, see
