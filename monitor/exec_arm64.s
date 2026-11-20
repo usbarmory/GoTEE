@@ -7,10 +7,8 @@
 #include "textflag.h"
 
 // GoTEE exception handling relies on one exit point (Exec) and one return
-// point (monitor), both are used for:
-//
-//   Secure      User Mode execution and exception handling
-//   NonSecure System mode execution and supervisor call handling
+// point (monitor), both are used for execution of an unprivileged (EL0)
+// execution context.
 //
 // An execution context (ExecCtx) structure is used to hold initial register
 // state at execution as well as store the updated state on re-entry.

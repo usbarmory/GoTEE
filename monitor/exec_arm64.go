@@ -4,7 +4,10 @@
 // that can be found in the LICENSE file.
 
 // Package monitor provides supervisor support for TamaGo unikernels to allow
-// scheduling of Secure user mode executables.
+// scheduling of unprivileged executables (EL0) from a privileged level (EL1).
+//
+// The build tag `el1secure` controls whether the unikernel is started as EL1
+// Secure or Nonsecure.
 //
 // This package is only meant to be used with `GOOS=tamago GOARCH=arm64` as
 // supported by the TamaGo framework for bare metal Go, see

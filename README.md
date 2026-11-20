@@ -73,8 +73,8 @@ The example trusted OS/applet combination performs basic testing of concurrent
 execution of three [TamaGo](https://github.com/usbarmory/tamago)
 unikernels at different privilege levels:
 
- * Trusted OS (ARM: TZ Secure World system mode, RISC-V: M-mode)
- * Trusted Applet (ARM: TZ Secure World user mode, RISC-V: S-mode)
+ * Trusted OS (ARM: TZ Secure World system mode, ARM64: EL1, RISC-V: M-mode)
+ * Trusted Applet (ARM: TZ Secure World user mode, ARM64: EL0, RISC-V: S-mode)
  * Main OS (ARM: TZ Normal World system mode, RISC-V: S-mode)
 
 The Main OS yields back with a monitor call.
