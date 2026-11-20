@@ -43,11 +43,12 @@ Supported hardware
 
 The following table summarizes currently supported SoCs and boards.
 
-| SoC          | Board                                                                                                                                                                                | SoC package                                                               | Board package                                                                        |
-|--------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
-| NXP i.MX6ULZ | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)                                                                                                                      | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [usbarmory/mk2](https://github.com/usbarmory/tamago/tree/master/board/usbarmory)     |
-| NXP i.MX6ULL | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [mx6ullevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/mx6ullevk)     |
-| SiFive FU540 | [QEMU sifive_u](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)                                                                                                         | [fu540](https://github.com/usbarmory/tamago/tree/master/soc/sifive/fu540) | [qemu/sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u) |
+| SoC             | Board                                                                                                                                                                                | SoC package                                                               | Board package                                                                        |
+|-----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------|--------------------------------------------------------------------------------------|
+| NXP i.MX6ULZ    | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki)                                                                                                                      | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [usbarmory/mk2](https://github.com/usbarmory/tamago/tree/master/board/usbarmory)     |
+| NXP i.MX6ULL    | [MCIMX6ULL-EVK](https://www.nxp.com/design/development-boards/i-mx-evaluation-and-development-boards/evaluation-kit-for-the-i-mx-6ull-and-6ulz-applications-processor:MCIMX6ULL-EVK) | [imx6ul](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx6ul)  | [mx6ullevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/mx6ullevk)     |
+| NXP i.MX8M Plus | [8MPLUSLPD4-EVK](https://www.nxp.com/design/design-center/development-boards-and-designs/8MPLUSLPD4-EVK)                                                                             | [imx8mp](https://github.com/usbarmory/tamago/tree/master/soc/nxp/imx8mp)  | [imx8mpevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/imx8mpevk)     |
+| SiFive FU540    | [QEMU sifive_u](https://www.qemu.org/docs/master/system/riscv/sifive_u.html)                                                                                                         | [fu540](https://github.com/usbarmory/tamago/tree/master/soc/sifive/fu540) | [qemu/sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u) |
 
 Example application
 ===================
@@ -196,12 +197,37 @@ Final executables are created in the `bin` subdirectory,
 
 The following targets are available:
 
-| `TARGET`    | Board            | Executing and debugging                                                                                  |
-|-------------|------------------|----------------------------------------------------------------------------------------------------------|
-| `usbarmory` | USB armory Mk II | [usbarmory](https://github.com/usbarmory/tamago/tree/master/board/usbarmory#executing-and-debugging)     |
+| `TARGET`    | Board                                                                              | Executing and debugging                                                                                  |
+|-------------|------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `usbarmory` | [USB armory Mk II](https://github.com/usbarmory/usbarmory/wiki/Mk-II-Introduction) | [usbarmory](https://github.com/usbarmory/tamago/tree/master/board/usbarmory#executing-and-debugging)     |
 
 The targets support native (see relevant documentation links in the table above)
 as well as emulated execution (e.g. `make qemu`).
+
+Building and executing on ARM64 targets
+=======================================
+
+Build the example trusted applet and kernel executables as follows:
+
+```
+git clone https://github.com/usbarmory/GoTEE-example
+cd GoTEE-example && export TARGET=imx8mpevk && make nonsecure_os_go && make trusted_applet_go && make trusted_os
+```
+
+> [!NOTE]
+> Replace `trusted_applet_go` with `trusted_applet_rust` for a Rust
+> TA example, this requires Rust nightly and the `aarch64-unknown-none`
+> toolchain.
+
+Final executables are created in the `bin` subdirectory.
+
+Available targets:
+
+| `TARGET`    | Board                                                                                                    | Executing and debugging                                                                                  |
+|-------------|----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| `imx8mpevk` | [8MPLUSLPD4-EVK](https://www.nxp.com/design/design-center/development-boards-and-designs/8MPLUSLPD4-EVK) | [imx8mpevk](https://github.com/usbarmory/tamago/tree/master/board/nxp/imx8mpevk#executing-and-debugging) |
+
+The target has only been tested with emulated execution (e.g. `make qemu`)
 
 Building and executing on RISC-V targets
 ========================================
@@ -222,9 +248,9 @@ Final executables are created in the `bin` subdirectory.
 
 Available targets:
 
-| `TARGET`    | Board            | Executing and debugging                                                                                  |
-|-------------|------------------|----------------------------------------------------------------------------------------------------------|
-| `sifive_u`  | QEMU sifive_u    | [sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u#executing-and-debugging)  |
+| `TARGET`   | Board            | Executing and debugging                                                                                 |
+|------------|------------------|---------------------------------------------------------------------------------------------------------|
+| `sifive_u` | QEMU sifive_u    | [sifive_u](https://github.com/usbarmory/tamago/tree/master/board/qemu/sifive_u#executing-and-debugging) |
 
 The target has only been tested with emulated execution (e.g. `make qemu`)
 
