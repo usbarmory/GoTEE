@@ -21,7 +21,7 @@ TEXT ·Exit(SB),$0
 // func Print(c byte)
 TEXT ·Print(SB),$0-1
 	MOVW	$const_SYS_WRITE, R0
-	MOVB	c+0(FP), R1
+	MOVBU	c+0(FP), R1
 
 	SWI	$0
 
@@ -35,7 +35,6 @@ TEXT ·Nanotime(SB),$0-8
 
 	MOVW	R0, ret_lo+0(FP)
 	MOVW	R1, ret_hi+4(FP)
-
 	RET
 
 // func Write(trap uint, b []byte, n uint)
@@ -57,5 +56,4 @@ TEXT ·Read(SB),$0-24
 	SWI	$0
 
 	MOVW	R0, ret+20(FP)
-
 	RET
