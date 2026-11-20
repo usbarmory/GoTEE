@@ -27,7 +27,7 @@ package monitor
 func Exec(ctx *ExecCtx)
 
 // ExecCtx represents a executable initialization or returning state.
-type ExecCtx struct {}
+type ExecCtx struct{}
 
 // String returns the string form of the execution context registers.
 func (ctx *ExecCtx) String()

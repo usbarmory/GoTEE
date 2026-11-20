@@ -24,7 +24,6 @@ import (
 	"github.com/usbarmory/tamago/dma"
 )
 
-
 var mux sync.Mutex
 
 // defined in exec_arm64.s
@@ -81,7 +80,7 @@ type ExecCtx struct {
 	R31 uint64 // SP
 
 	// Program Counter
-	PC  uint64
+	PC uint64
 
 	// Fault Address Register
 	FAR uint64
